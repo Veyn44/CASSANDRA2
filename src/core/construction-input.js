@@ -5,6 +5,10 @@ const key = (x, y) => x + ',' + y;
 export function createConstructionInput(s, inside, objectAt, refresh, note) {
   function place(p) {
     if (!inside(p)) return;
+    if (s.activeDeck !== 'Z0') {
+      note('TECHNICAL DECKS ARE SEALED · CONSTRUCTION DISABLED');
+      return;
+    }
     if (p.x >= 128) {
       note('SHIP CONSTRUCTION IS LIMITED TO THE LEFT SECTOR');
       return;
