@@ -1,6 +1,10 @@
 import { connectedHullSet } from './hull-system.js';
 import { getBuildable } from './prefab-manager.js';
+import { createTechnicalDecks } from './technical-deck-generator.js';
 const key = (x, y) => x + ',' + y;
+function syncTechnicalDecks(s) {
+  s.technicalDecks = createTechnicalDecks(s.map.tiles);
+}
 const dirs = [
   [1, 0],
   [-1, 0],
@@ -72,6 +76,7 @@ export function completePlanAction(s, x, y) {
     tile.wall = false;
     tile.wallIntegrity = null;
   } else if (plan.type === 'demolishHull') delete s.map.tiles[k];
+  if (plan.type === 'hull' || plan.type === 'demolishHull') syncTechnicalDecks(s);
   s.pawn.op--;
   delete s.map.plans[k];
   return {
