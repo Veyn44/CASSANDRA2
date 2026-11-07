@@ -8,7 +8,6 @@ import { startGameSession } from './app/session.js';
 import { createSessionLifecycle } from './app/session-lifecycle.js';
 import { exportShipLayout as exportShipLayoutFile } from './dev/ship-layout-exporter.js';
 import { bindDevControls } from './dev/dev-controls.js';
-import { bindCrewDeckPanels } from './ui/crew-deck-panels.js';
 const $ = (selector) => document.querySelector(selector);
 const shell = $('#game-shell'),
   options = $('#options-panel'),
