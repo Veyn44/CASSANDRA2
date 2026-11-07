@@ -246,9 +246,10 @@ export function createRenderer(canvas, s) {
     if (s.activeDeck === 'Z0') {
       const pawn = pos(s.pawn.x, s.pawn.y),
         m = z * 0.29;
-      c.fillStyle = C.pawn;
+      const pawnColor = s.pawn.color ?? C.pawn;
+      c.fillStyle = pawnColor;
       c.fillRect(pawn.x + m, pawn.y + m, z - 2 * m, z - 2 * m);
-      c.strokeStyle = '#ff9b9e';
+      c.strokeStyle = '#f2c2c5';
       c.lineWidth = 1.5;
       c.strokeRect(pawn.x + m, pawn.y + m, z - 2 * m, z - 2 * m);
       if (s.pawn.selected) {
