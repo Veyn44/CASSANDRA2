@@ -35,7 +35,6 @@ const { pause, resume, askLeave, returnToMenu } = createSessionLifecycle({
   setDevPanel: (value) => (devPanel = value),
   setSectionsPanel: (value) => (sectionsPanel = value),
   getSectionsPanel: () => sectionsPanel,
-  setCrewDeckPanels: (value) => (crewDeckPanels = value),
   getSessionCleanup: () => disposeSession,
   setSessionCleanup: (value) => (disposeSession = value),
 });
