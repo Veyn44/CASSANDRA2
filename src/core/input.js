@@ -52,6 +52,11 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
     if (e.button === 0) {
       const p = tile(e.clientX, e.clientY);
       if (!inside(p)) return;
+      if (s.activeDeck !== 'Z0') {
+        if (s.damageSimulator?.active) note('SHIP HULL IS UNDAMAGEABLE');
+        else if (s.activeTool) note('TECHNICAL DECKS ARE SEALED · CONSTRUCTION DISABLED');
+        return;
+      }
       if (s.damageSimulator?.active) {
         const result = applyDamageAt(s, p.x, p.y);
         note(result.message);
@@ -199,6 +204,22 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
   listen(window, 'keydown', (e) => {
     if (s.paused) return;
     const key = e.key.toLowerCase();
+    if (key === '[' || key === ']') {
+      const levels = ['Z0', ...Object.keys(s.technicalDecks ?? {})];
+      const current = Math.max(0, levels.indexOf(s.activeDeck ?? 'Z0'));
+      s.activeDeck = levels[(current + (key === ']' ? 1 : -1) + levels.length) % levels.length];
+      s.activeTool = null;
+      s.selectedObject = null;
+      refresh();
+      note('DECK VIEW · ' + s.activeDeck + ' · [ / ] TO CHANGE LEVEL · 0 FOR Z0');
+      return;
+    }
+    if (key === '0') {
+      s.activeDeck = 'Z0';
+      refresh();
+      note('DECK VIEW · Z0');
+      return;
+    }
     if ((key === 'q' || key === 'e') && s.activeTool === 'prefab') {
       e.preventDefault();
       s.rotation = (s.rotation + (key === 'q' ? 3 : 1)) % 4;
