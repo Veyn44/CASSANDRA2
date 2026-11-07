@@ -41,8 +41,7 @@
         <div class="right">SYSTEMS NOMINAL <b id="dev-indicator" hidden>DEV MODE</b></div>
       </header>
       <div class="pawn-toolbar">
-        <button id="sections-toggle" class="sections-toggle">SECTIONS</button><span>CREW</span
-        ><button id="pawn-select" class="active">■ RESEARCHER · LV 01</button
+        <button id="sections-toggle" class="sections-toggle">SECTIONS</button
         ><span id="mode-label">SELECT / COMMAND MODE</span
         ><button id="grid-toggle" aria-pressed="true">GRID: ON</button>
         <div id="dev-tools-wrap" hidden>
@@ -58,6 +57,14 @@
       </div>
       <section class="layout">
         <aside class="build-sidebar">
+          <section id="deck-panel" class="crew-panel deck-panel" hidden>
+            <h3>DECKS</h3>
+            <div id="deck-list" class="deck-list"></div>
+          </section>
+          <section id="crew-panel" class="crew-panel" hidden>
+            <h3>PAWNS</h3>
+            <div id="crew-list" class="crew-list"></div>
+          </section>
           <h3>CONSTRUCTION</h3>
           <button id="build-menu-toggle" class="build-main">◈ MATERIAL <span>›</span></button>
           <div id="build-categories" hidden>
