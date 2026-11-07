@@ -9,6 +9,7 @@ const esc = (v) =>
     /[&<>"']/g,
     (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]
   );
+const DECK_LEVELS = ['Z+2', 'Z+1', 'Z0', 'Z-1', 'Z-2'];
 const DIRS = [
   [1, 0],
   [-1, 0],
@@ -41,12 +42,27 @@ export function createSectionsPanel(root, s, onChange) {
     }
     root.hidden = false;
     const data = detectSections(s),
-      selected = data.byId[s.sectionsUi.selectedSectionId] ?? null;
-    const info = selected ? getSectionInfo(selected) : getVacuumInfo(),
-      panels = data.panels;
-    const allTiles = Object.entries(s.map.tiles)
-      .filter(([, tile]) => tile?.hull)
-      .map(([tileKey]) => tileKey.split(',').map(Number));
+      deckLevel = s.activeDeck ?? 'Z0',
+      technicalDeck = deckLevel === 'Z0' ? null : s.technicalDecks?.[deckLevel],
+      selected = deckLevel === 'Z0' ? data.byId[s.sectionsUi.selectedSectionId] ?? null : null;
+    const panels = deckLevel === 'Z0' ? data.panels : [];
+    const info = deckLevel === 'Z0'
+      ? selected ? getSectionInfo(selected) : getVacuumInfo()
+      : {
+          type: 'TECHNICAL DECK',
+          id: deckLevel,
+          name: 'TECHNICAL DECK ' + deckLevel,
+          airtightness: 'SEALED',
+          weight: null,
+          atmosphere: 'NOT SIMULATED',
+          pressure: 'NOT SIMULATED',
+          temperature: null,
+          environment: 'SEALED SHIP STRUCTURE',
+          activeTiles: Object.keys(technicalDeck?.tiles ?? {}).length,
+        };
+    const allTiles = deckLevel === 'Z0'
+      ? Object.entries(s.map.tiles).filter(([, tile]) => tile?.hull).map(([tileKey]) => tileKey.split(',').map(Number))
+      : (technicalDeck?.footprint ?? []).map((tileKey) => tileKey.split(',').map(Number));
     const minX = allTiles.length ? Math.max(0, Math.min(...allTiles.map((p) => p[0])) - 2) : 0;
     const maxX = allTiles.length
       ? Math.min(s.map.width - 1, Math.max(...allTiles.map((p) => p[0])) + 2)
@@ -61,8 +77,14 @@ export function createSectionsPanel(root, s, onChange) {
     const vacuumSelected = s.sectionsUi.selectedSectionId == null;
     for (let y = minY; y <= maxY; y++)
       for (let x = minX; x <= maxX; x++) {
-        const tileKey = x + ',' + y,
-          id = data.tileToSection[tileKey],
+        const tileKey = x + ',' + y;
+        if (deckLevel !== 'Z0') {
+          const shaft = technicalDeck?.shaft.some((point) => point.x === x && point.y === y);
+          grid.push('<div class="section-map-cell ' + (shaft ? 'technical-shaft-cell' : 'technical-hull-cell') +
+            '" title="' + (shaft ? 'CENTRAL SHAFT' : 'SEALED SHIP HULL') + '"></div>');
+          continue;
+        }
+        const id = data.tileToSection[tileKey],
           tile = s.map.tiles[tileKey];
         const panel = panels.find((p) => p.x === x && p.y === y);
         if (!tile?.hull) {
@@ -178,8 +200,10 @@ export function createSectionsPanel(root, s, onChange) {
     const weight = info.weight == null ? 'NOT DEFINED' : info.weight.toLocaleString('en-US');
     const temperature = info.temperature == null ? 'UNMAINTAINED' : info.temperature + ' °C';
     root.innerHTML =
-      '<div class="sections-window"><header class="sections-header"><div><small>CASSANDRA · COMMAND SYSTEM</small><h2>SECTION CONTROL</h2></div><button data-close aria-label="Close">×</button></header><div class="sections-layout"><aside class="sections-panel-list"><h3>CONTROL PANELS</h3>' +
-      (panelRows || '<p class="sections-empty">NO CONTROL PANELS INSTALLED</p>') +
+      '<div class="sections-window"><header class="sections-header"><div><small>CASSANDRA · COMMAND SYSTEM</small><h2>SECTION CONTROL</h2></div><button data-close aria-label="Close">×</button></header><nav class="sections-deck-tabs" aria-label="Select ship deck">' +
+      DECK_LEVELS.map((level) => '<button data-deck="' + level + '" class="' + (deckLevel === level ? 'active' : '') + '">' + level + '</button>').join('') +
+      '</nav><div class="sections-layout"><aside class="sections-panel-list"><h3>' + (deckLevel === 'Z0' ? 'CONTROL PANELS' : 'DECK STATUS') + '</h3>' +
+      (deckLevel === 'Z0' ? panelRows || '<p class="sections-empty">NO CONTROL PANELS INSTALLED</p>' : '<p class="sections-empty">TECHNICAL DECK · READ ONLY</p>') +
       '</aside><section class="sections-blueprint"><h3>SHIP BLUEPRINT</h3><div class="section-map" style="grid-template-columns:repeat(' +
       width +
       ',minmax(5px,1fr));grid-template-rows:repeat(' +
@@ -218,7 +242,7 @@ export function createSectionsPanel(root, s, onChange) {
         ? '<dt>CRITICAL BOUNDARIES</dt><dd>' + info.criticalWalls + '</dd>'
         : '') +
       '</dl></div>' +
-      (selected
+      (selected && deckLevel === 'Z0'
         ? '<div class="section-actions"><h3>AVAILABLE ACTIONS</h3><button data-scan>COMPLETE SCAN <b>2 AP</b></button></div>'
         : '') +
       reportHtml +
@@ -233,6 +257,18 @@ export function createSectionsPanel(root, s, onChange) {
       open = false;
       render();
     };
+    root.querySelectorAll('[data-deck]').forEach((button) => {
+      button.onclick = () => {
+        const level = button.dataset.deck;
+        if (!DECK_LEVELS.includes(level)) return;
+        s.activeDeck = level;
+        s.sectionsUi.selectedSectionId = null;
+        s.sectionsUi.selectedPanelId = null;
+        report = null;
+        onChange('DECK VIEW · ' + level);
+        render();
+      };
+    });
     root
       .querySelectorAll('[data-section]')
       .forEach((b) => (b.onclick = () => selectSection(b.dataset.section || null)));
