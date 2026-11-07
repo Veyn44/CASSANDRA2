@@ -57,7 +57,6 @@ function renderMiniMap(state, deckId, color) {
 export function createCrewDeckPanels(state, refresh, note) {
   const deckRoot = document.querySelector('#deck-list');
   const crewRoot = document.querySelector('#crew-list');
-  const color = state.pawn.color ?? PAWN_COLOR;
 
   function render() {
     if (!deckRoot || !crewRoot) return;
@@ -81,25 +80,28 @@ export function createCrewDeckPanels(state, refresh, note) {
       '</div></div>'
     ).join('');
 
-    const pawn = state.pawn;
-    crewRoot.innerHTML =
-      '<button class="crew-card ' +
-      (pawn.selected ? 'active' : '') +
-      '" id="crew-researcher" type="button">' +
-      '<span class="crew-portrait" aria-hidden="true"><b>R</b></span>' +
-      '<span class="crew-details"><strong>' +
-      pawn.name +
-      '</strong><small>HUMAN · LEVEL ' +
-      String(pawn.level).padStart(2, '0') +
-      '</small><span class="crew-stats"><i>HP <b>' +
-      pawn.health +
-      '%</b></i><i>AP <b>' +
-      pawn.op +
-      ' / ' +
-      pawn.maxOP +
-      '</b></i></span></span><i class="crew-color" style="--pawn-color:' +
-      color +
-      '"></i></button>';
+    const pawns = state.pawns ?? [state.pawn];
+    crewRoot.innerHTML = pawns.map((pawn) => {
+      const color = pawn.color ?? PAWN_COLOR;
+      const initials = String(pawn.name ?? 'P').trim().slice(0, 1).toUpperCase();
+      return '<button class="crew-card ' +
+        (pawn.selected ? 'active' : '') +
+        '" data-pawn="' + pawn.id + '" type="button">' +
+        '<span class="crew-portrait" aria-hidden="true"><b>' + initials + '</b></span>' +
+        '<span class="crew-details"><strong>' +
+        pawn.name +
+        '</strong><small>HUMAN · LEVEL ' +
+        String(pawn.level).padStart(2, '0') +
+        '</small><span class="crew-stats"><i>HP <b>' +
+        pawn.health +
+        '%</b></i><i>AP <b>' +
+        pawn.op +
+        ' / ' +
+        pawn.maxOP +
+        '</b></i></span></span><i class="crew-color" style="--pawn-color:' +
+        color +
+        '"></i></button>';
+    }).join('');
 
     deckRoot.querySelectorAll('[data-deck]').forEach((button) => {
       button.addEventListener('click', () => {
@@ -112,12 +114,21 @@ export function createCrewDeckPanels(state, refresh, note) {
         note('DECK VIEW · ' + nextDeck);
       });
     });
-    crewRoot.querySelector('#crew-researcher')?.addEventListener('click', () => {
-      state.pawn.selected = true;
-      state.selectedObject = null;
-      state.selection = state.pawn.id;
-      refresh();
-      note('CREW SELECTED · ' + state.pawn.name.toUpperCase());
+    crewRoot.querySelectorAll('[data-pawn]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const pawns = state.pawns ?? [state.pawn];
+        const pawn = pawns.find((entry) => entry.id === button.dataset.pawn);
+        if (!pawn) return;
+        for (const entry of pawns) entry.selected = entry.id === pawn.id;
+        state.activeDeck = pawn.deck ?? 'Z0';
+        state.camera.x = pawn.x;
+        state.camera.y = pawn.y;
+        state.selectedObject = null;
+        state.selection = pawn.id;
+        state.activeTool = null;
+        refresh();
+        note('CREW SELECTED · ' + pawn.name.toUpperCase() + ' · ' + state.activeDeck);
+      });
     });
   }
 
