@@ -3,6 +3,7 @@ import { createInitialState } from '../systems/state-factory.js';
 import { createRenderer } from '../core/renderer.js';
 import { bindInput } from '../core/input.js';
 import { bindDevPanel } from '../ui/dev-panel.js';
+import { createCrewDeckPanels } from '../ui/crew-deck-panels.js';
 
 export function startGameSession(mode, { $, canvas, refresh, noteText }) {
   const dev = mode === 'dev';
@@ -34,6 +35,12 @@ export function startGameSession(mode, { $, canvas, refresh, noteText }) {
     noteText(message);
     refresh();
   });
+  const crewDeckPanels = dev
+    ? createCrewDeckPanels(state, refresh, noteText)
+    : null;
+  $('#deck-panel').hidden = !dev;
+  $('#crew-panel').hidden = !dev;
+  $('#game-shell').classList.toggle('dev-mode', dev);
 
   $('#dev-tools-wrap').hidden = !dev;
   $('#dev-indicator').hidden = !dev;
@@ -58,7 +65,11 @@ export function startGameSession(mode, { $, canvas, refresh, noteText }) {
     $('#generate-asteroid').onclick = null;
     $('#generate-next-asteroid').onclick = null;
     sectionsPanel?.close();
+    crewDeckPanels?.dispose();
+    $('#game-shell').classList.remove('dev-mode');
+    $('#deck-panel').hidden = true;
+    $('#crew-panel').hidden = true;
   }
 
-  return { dev, state, renderer, devPanel, sectionsPanel, dispose };
+  return { dev, state, renderer, devPanel, sectionsPanel, crewDeckPanels, dispose };
 }
