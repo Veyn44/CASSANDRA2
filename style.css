@@ -1567,3 +1567,61 @@ body {
 }
 
 .dev-mode #selection-panel { display: none; }
+
+
+/* DEV pawn selection strip: docked across the top edge of the map viewport */
+.viewport-wrap { position: relative; }
+.crew-strip {
+  position: absolute;
+  z-index: 4;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  padding: 7px 9px 9px;
+  background: rgba(14, 25, 36, .96);
+  border: 1px solid #405b6b;
+  box-shadow: 0 8px 24px rgba(0,0,0,.38);
+  backdrop-filter: blur(5px);
+}
+.crew-strip h3 {
+  margin: 0 0 6px;
+  color: #91a7b6;
+  font-size: 8px;
+  letter-spacing: .2em;
+}
+.crew-strip .crew-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 7px;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: #496475 #101923;
+}
+.crew-strip .crew-card {
+  flex: 0 0 188px;
+  min-width: 188px;
+  min-height: 48px;
+  padding: 5px 7px;
+  grid-template-columns: 36px minmax(0,1fr) 7px;
+  gap: 7px;
+}
+.crew-strip .crew-portrait {
+  width: 34px;
+  height: 36px;
+  font-size: 19px;
+}
+.crew-strip .crew-details { gap: 3px; }
+.crew-strip .crew-details strong { font-size: 9px; }
+.crew-strip .crew-details small { font-size: 7px; }
+.crew-strip .crew-stats { gap: 7px; }
+.crew-strip .crew-stats i { font-size: 7px; }
+.crew-strip .crew-color { width: 6px; height: 25px; }
+@media (max-width: 600px) {
+  .crew-strip { top: 6px; left: 6px; right: 6px; padding: 6px; }
+  .crew-strip .crew-card { flex-basis: 166px; min-width: 166px; }
+}
