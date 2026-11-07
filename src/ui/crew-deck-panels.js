@@ -128,6 +128,3 @@ export function createCrewDeckPanels(state, refresh, note) {
   } };
 }
 
-export function bindCrewDeckPanels(state, refresh, note) {
-  return createCrewDeckPanels(state, refresh, note);
-}
