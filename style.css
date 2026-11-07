@@ -1387,3 +1387,181 @@ body {
     0 0 8px rgba(76, 211, 226, 0.65),
     inset 0 0 5px rgba(76, 211, 226, 0.35);
 }
+
+
+/* DEV crew and deck navigation panels */
+.build-sidebar {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #344b5a #101923;
+}
+.crew-panel {
+  flex: 0 0 auto;
+  padding: 10px;
+  border: 1px solid #2b3b49;
+  background: linear-gradient(145deg, #16222e, #111a24);
+}
+.crew-panel h3 {
+  margin: 1px 0 9px;
+  color: #91a7b6;
+  font-size: 9px;
+  letter-spacing: .18em;
+}
+.deck-list,
+.crew-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.deck-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 22px;
+  gap: 5px;
+  align-items: stretch;
+  min-height: 44px;
+  padding: 3px;
+  border: 1px solid #293d4b;
+  background: #0c151f;
+}
+.deck-row.active {
+  border-color: #8fb4c4;
+  background: #172a37;
+  box-shadow: inset 2px 0 #8fb4c4;
+}
+.deck-select {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr);
+  gap: 6px;
+  align-items: center;
+  padding: 3px;
+  border: 0;
+  background: transparent;
+  color: #dce5ed;
+  text-align: left;
+}
+.deck-select:hover { background: #1a2c39; }
+.deck-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+.deck-mini-map {
+  width: 100%;
+  height: 32px;
+  display: grid;
+  gap: 1px;
+  padding: 2px;
+  background: #080f17;
+  border: 1px solid #344a59;
+  overflow: hidden;
+}
+.deck-mini-map.empty {
+  display: grid;
+  place-items: center;
+  color: #6f8492;
+  font-size: 7px;
+}
+.deck-mini-cell { min-width: 0; min-height: 0; background: transparent; }
+.deck-mini-cell.hull { background: #6f8993; border: 1px solid #9eb5be; }
+.deck-mini-cell.shaft { background: #080f17; border: 1px solid #45606e; }
+.deck-mini-cell.has-pawn { background: var(--pawn-color); box-shadow: 0 0 4px var(--pawn-color); }
+.deck-pawn-indicators {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border-left: 1px solid #293d4b;
+}
+.deck-pawn-indicators i,
+.crew-color {
+  display: block;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  background: var(--pawn-color);
+  border: 1px solid #f2c2c5;
+  box-shadow: 0 0 5px color-mix(in srgb, var(--pawn-color), transparent 35%);
+}
+.deck-pawn-indicators .no-pawns {
+  color: #526777;
+  font-size: 10px;
+}
+.crew-card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 42px minmax(0,1fr) 9px;
+  gap: 8px;
+  align-items: center;
+  padding: 7px;
+  text-align: left;
+  color: #dce5ed;
+  background: #0d1822;
+  border: 1px solid #2b414f;
+}
+.crew-card:hover,
+.crew-card.active {
+  background: #172a37;
+  border-color: #8aa9b8;
+}
+.crew-portrait {
+  width: 40px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #314654, #17232d);
+  border: 1px solid #617d8c;
+  color: #b8cbd4;
+  font: 22px Georgia, serif;
+}
+.crew-details { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.crew-details strong {
+  overflow: hidden;
+  color: #e4edf2;
+  font-size: 10px;
+  letter-spacing: .07em;
+  text-overflow: ellipsis;
+}
+.crew-details small { color: #829aa9; font-size: 8px; letter-spacing: .08em; }
+.crew-stats { display: flex; flex-wrap: wrap; gap: 8px; }
+.crew-stats i { color: #829aa9; font-size: 8px; font-style: normal; }
+.crew-stats b { color: #dce5ed; font-weight: 700; }
+.crew-color { width: 7px; height: 28px; }
+.sections-deck-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #0a1721;
+  border-bottom: 1px solid #204653;
+}
+.sections-deck-tabs button {
+  min-width: 64px;
+  padding: 7px 10px;
+  background: #12232f;
+  border: 1px solid #2c4a59;
+  color: #8faab7;
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+.sections-deck-tabs button:hover,
+.sections-deck-tabs button.active {
+  background: #244454;
+  border-color: #83afc0;
+  color: #e0edf2;
+}
+.section-map-cell.technical-hull-cell {
+  background: #607d88;
+  border: 1px solid #a2bac3;
+}
+.section-map-cell.technical-shaft-cell {
+  background: #07111a;
+  border: 1px solid #496675;
+}
+@media (max-height: 760px) {
+  .crew-panel { padding: 7px; }
+  .deck-list { gap: 4px; }
+  .deck-row { min-height: 38px; }
+  .deck-mini-map { height: 27px; }
+  .crew-card { padding: 5px; }
+}
