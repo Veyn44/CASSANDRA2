@@ -1,10 +1,15 @@
 import { placePrefab } from '../systems/prefab-manager.js';
+import { createTechnicalDecks } from '../systems/technical-deck-generator.js';
 
 const key = (x, y) => x + ',' + y;
 
 export function createConstructionInput(s, inside, objectAt, refresh, note) {
   function place(p) {
     if (!inside(p)) return;
+    if (s.activeDeck !== 'Z0') {
+      note('TECHNICAL DECKS ARE SEALED · CONSTRUCTION DISABLED');
+      return;
+    }
     if (p.x >= 128) {
       note('SHIP CONSTRUCTION IS LIMITED TO THE LEFT SECTOR');
       return;
@@ -23,6 +28,7 @@ export function createConstructionInput(s, inside, objectAt, refresh, note) {
           aluminiumWall: false,
           aluminiumWallIntegrity: null,
         };
+        s.technicalDecks = createTechnicalDecks(s.map.tiles);
         note('HULL BUILT · DEV CREATOR');
       } else {
         s.map.plans[k] = { type: 'hull', materialFamily: 'titanium' };
@@ -75,6 +81,7 @@ export function createConstructionInput(s, inside, objectAt, refresh, note) {
             note('HULL WALL REMOVED · DEV CREATOR');
           } else if (t?.hull) {
             delete s.map.tiles[k];
+            s.technicalDecks = createTechnicalDecks(s.map.tiles);
             note('HULL TILE REMOVED · DEV CREATOR');
           } else note('NOTHING TO ERASE');
         }

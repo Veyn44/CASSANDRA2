@@ -1,5 +1,7 @@
 const key = (x, y) => x + ',' + y;
 export function applyDamageAt(s, x, y) {
+  if (s.activeDeck && s.activeDeck !== 'Z0')
+    return { ok: false, message: 'SHIP HULL IS UNDAMAGEABLE' };
   const k = key(x, y),
     tile = s.map.tiles[k];
   const door = Object.values(s.map.objects).find(

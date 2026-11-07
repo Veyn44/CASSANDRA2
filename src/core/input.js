@@ -43,6 +43,10 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
     }
     if (e.button === 2) {
       e.preventDefault();
+      if (s.activeDeck !== 'Z0') {
+        note('TECHNICAL DECKS ARE READ-ONLY');
+        return;
+      }
       if (s.activeTool) {
         cancel();
         note('BUILD MODE CANCELLED');
@@ -52,6 +56,11 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
     if (e.button === 0) {
       const p = tile(e.clientX, e.clientY);
       if (!inside(p)) return;
+      if (s.activeDeck !== 'Z0') {
+        if (s.damageSimulator?.active) note('SHIP HULL IS UNDAMAGEABLE');
+        else if (s.activeTool) note('TECHNICAL DECKS ARE SEALED · CONSTRUCTION DISABLED');
+        return;
+      }
       if (s.damageSimulator?.active) {
         const result = applyDamageAt(s, p.x, p.y);
         note(result.message);
@@ -100,7 +109,14 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
     const inspector = document.querySelector('#tile-inspector');
     if (inspector) {
       if (!s.hoverTile) inspector.textContent = 'HOVER OVER A TILE TO INSPECT';
-      else {
+      else if (s.activeDeck !== 'Z0') {
+        const deck = s.technicalDecks?.[s.activeDeck];
+        const tile = deck?.tiles[key(p.x, p.y)];
+        const shaft = deck?.shaft.some((point) => point.x === p.x && point.y === p.y);
+        inspector.innerHTML = '<strong>' + (tile ? 'SHIP HULL' : shaft ? 'CENTRAL SHAFT' : 'OUTSIDE DECK FOOTPRINT') + '</strong><br>' +
+          (tile ? 'Undamageable · Non-buildable · No integrity' : shaft ? '2 × 2 vertical access void' : 'Derived directly from Z0 footprint') +
+          '<br>LEVEL ' + s.activeDeck + ' · POSITION ' + p.x + ', ' + p.y;
+      } else {
         const t = s.map.tiles[key(p.x, p.y)],
           plan = s.map.plans[key(p.x, p.y)],
           obj = objectAt(p),
@@ -199,7 +215,23 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
   listen(window, 'keydown', (e) => {
     if (s.paused) return;
     const key = e.key.toLowerCase();
-    if ((key === 'q' || key === 'e') && s.activeTool === 'prefab') {
+    if (key === '[' || key === ']') {
+      const levels = ['Z0', ...Object.keys(s.technicalDecks ?? {})];
+      const current = Math.max(0, levels.indexOf(s.activeDeck ?? 'Z0'));
+      s.activeDeck = levels[(current + (key === ']' ? 1 : -1) + levels.length) % levels.length];
+      s.activeTool = null;
+      s.selectedObject = null;
+      refresh();
+      note('DECK VIEW · ' + s.activeDeck + ' · [ / ] TO CHANGE LEVEL · 0 FOR Z0');
+      return;
+    }
+    if (key === '0') {
+      s.activeDeck = 'Z0';
+      refresh();
+      note('DECK VIEW · Z0');
+      return;
+    }
+    if ((key === 'q' || key === 'e') && s.activeDeck === 'Z0' && s.activeTool === 'prefab') {
       e.preventDefault();
       s.rotation = (s.rotation + (key === 'q' ? 3 : 1)) % 4;
       r.draw();

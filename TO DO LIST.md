@@ -20,6 +20,18 @@
 - Before every code change, first tell the user exactly what will change, which files will be touched, and what will remain unchanged. Wait for explicit approval before editing.
 - After each approved change, fetch changed files from GitHub again and verify the requested changes. Clearly distinguish static verification from actual browser/gameplay testing.
 
+## Technical decks — approved implementation rules (2026-11-07)
+
+- Z0 is the single source of truth for the ship's outer Hull footprint.
+- Technical decks mirror the exact set of Hull coordinates in Z0; their dimensions are never configured independently.
+- A Z0 footprint expansion or reduction must regenerate technical-deck geometry from the updated Z0 footprint.
+- Technical deck geometry is stored separately from any future deck equipment/content so geometry regeneration cannot erase that content.
+- Technical deck surfaces use the generic `SHIP_HULL` type. It is not a player-buildable material and has no integrity, damage, repair, or demolition interactions.
+- Technical decks have a central 2×2 vertical shaft wherever those cells exist inside the Z0 footprint.
+- The first implementation exposes deck views using [ and ] to cycle levels and 0 to return to Z0. Technical deck views are read-only.
+- The starting technical levels are Z+2, Z+1, Z-1, and Z-2; Z0 remains the source level.
+- This is a geometry/rendering milestone only. It does not change Z0 construction, atmosphere, section detection, modules, economy, or JSON ship export.
+
 ## Persistent ship prefab and DEV tools rules
 
 - The initial ship will eventually be defined by a complete JSON prefab containing all information needed to reconstruct its initial layout and configuration.

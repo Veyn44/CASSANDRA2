@@ -1,5 +1,6 @@
 import { createGameConfig } from '../core/game-config.js';
 import { advanceEnvironment } from './section-manager.js';
+import { createTechnicalDecks } from './technical-deck-generator.js';
 const key = (x, y) => x + ',' + y;
 export function createInitialState({ mode = 'normal' } = {}) {
   const tiles = {};
@@ -240,6 +241,8 @@ export function createInitialState({ mode = 'normal' } = {}) {
     rotation: 0,
     nextObjectId: 21,
     hoverTile: null,
+    activeDeck: 'Z0',
+    technicalDecks: createTechnicalDecks(tiles),
     map: {
       width: 256,
       height: 128,
