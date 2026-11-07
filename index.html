@@ -61,10 +61,6 @@
             <h3>DECKS</h3>
             <div id="deck-list" class="deck-list"></div>
           </section>
-          <section id="crew-panel" class="crew-panel" hidden>
-            <h3>PAWNS</h3>
-            <div id="crew-list" class="crew-list"></div>
-          </section>
           <h3>CONSTRUCTION</h3>
           <button id="build-menu-toggle" class="build-main">◈ MATERIAL <span>›</span></button>
           <div id="build-categories" hidden>
@@ -85,6 +81,10 @@
           <footer>LEFT CLICK / DRAG: PLACE PLAN<br />RIGHT CLICK: CANCEL / COMMAND</footer>
         </aside>
         <div class="viewport-wrap">
+          <section id="crew-panel" class="crew-panel crew-strip" hidden>
+            <h3>PAWNS</h3>
+            <div id="crew-list" class="crew-list"></div>
+          </section>
           <canvas id="game-canvas" aria-label="Ship construction map"></canvas>
           <div class="hint">
             WASD: camera · wheel: zoom · MMB: pan · LMB: select / place · RMB: command
