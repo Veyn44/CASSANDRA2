@@ -1565,3 +1565,5 @@ body {
   .deck-mini-map { height: 27px; }
   .crew-card { padding: 5px; }
 }
+
+.dev-mode #selection-panel { display: none; }
