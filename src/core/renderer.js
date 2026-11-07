@@ -87,9 +87,17 @@ export function createRenderer(canvas, s) {
       for (let x = l; x < rr; x++) {
         const p = pos(x, y),
           k = x + ',' + y,
-          tile = s.map.tiles[k],
-          plan = s.map.plans[k];
-        if (tile?.hull) {
+          tile = s.activeDeck === 'Z0' ? s.map.tiles[k] : s.technicalDecks?.[s.activeDeck]?.tiles[k],
+          plan = s.activeDeck === 'Z0' ? s.map.plans[k] : null;
+        if (tile?.type === 'SHIP_HULL') {
+          c.fillStyle = '#526b78';
+          c.fillRect(p.x, p.y, z, z);
+          c.strokeStyle = '#9bb9c5';
+          c.lineWidth = Math.max(1, z * 0.045);
+          c.strokeRect(p.x, p.y, z, z);
+          c.fillStyle = 'rgba(220,240,248,.16)';
+          c.fillRect(p.x + z * 0.18, p.y + z * 0.18, z * 0.64, z * 0.64);
+        } else if (tile?.hull) {
           const integrity = tile.integrity ?? 100;
           c.fillStyle = integrity <= 25 ? '#4b626a' : integrity <= 50 ? '#687f86' : C.hull;
           c.fillRect(p.x, p.y, z, z);
@@ -160,7 +168,7 @@ export function createRenderer(canvas, s) {
     c.setLineDash([Math.max(3, z * 0.18), Math.max(2, z * 0.12)]);
     c.strokeRect(anchor.x, anchor.y, z * 2, z * 2);
     c.restore();
-    for (const o of Object.values(s.map.objects)) {
+    if (s.activeDeck === 'Z0') for (const o of Object.values(s.map.objects)) {
       const p = pos(o.x, o.y),
         w = o.w * z,
         h = o.h * z,
@@ -235,19 +243,21 @@ export function createRenderer(canvas, s) {
         c.restore();
       }
     }
-    const pawn = pos(s.pawn.x, s.pawn.y),
-      m = z * 0.29;
-    c.fillStyle = C.pawn;
-    c.fillRect(pawn.x + m, pawn.y + m, z - 2 * m, z - 2 * m);
-    c.strokeStyle = '#ff9b9e';
-    c.lineWidth = 1.5;
-    c.strokeRect(pawn.x + m, pawn.y + m, z - 2 * m, z - 2 * m);
-    if (s.pawn.selected) {
-      c.strokeStyle = '#70f0a0';
-      c.lineWidth = Math.max(3, z * 0.09);
-      c.strokeRect(pawn.x + z * 0.06, pawn.y + z * 0.06, z * 0.88, z * 0.88);
+    if (s.activeDeck === 'Z0') {
+      const pawn = pos(s.pawn.x, s.pawn.y),
+        m = z * 0.29;
+      c.fillStyle = C.pawn;
+      c.fillRect(pawn.x + m, pawn.y + m, z - 2 * m, z - 2 * m);
+      c.strokeStyle = '#ff9b9e';
+      c.lineWidth = 1.5;
+      c.strokeRect(pawn.x + m, pawn.y + m, z - 2 * m, z - 2 * m);
+      if (s.pawn.selected) {
+        c.strokeStyle = '#70f0a0';
+        c.lineWidth = Math.max(3, z * 0.09);
+        c.strokeRect(pawn.x + z * 0.06, pawn.y + z * 0.06, z * 0.88, z * 0.88);
+      }
     }
-    if (s.shipCreator?.active && s.hoverTile) {
+    if (s.activeDeck === 'Z0' && s.shipCreator?.active && s.hoverTile) {
       const p = pos(s.hoverTile.x, s.hoverTile.y),
         tool = s.shipCreator.tool,
         tile = s.map.tiles[s.hoverTile.x + ',' + s.hoverTile.y],
@@ -277,7 +287,7 @@ export function createRenderer(canvas, s) {
       c.strokeRect(p.x + z * 0.1, p.y + z * 0.1, z * 0.8, z * 0.8);
       c.restore();
     }
-    if (s.activeTool === 'prefab' && s.hoverTile) {
+    if (s.activeDeck === 'Z0' && s.activeTool === 'prefab' && s.hoverTile) {
       const def = getBuildable(s.selectedPrefab),
         check = validatePrefabPlacement(s, s.selectedPrefab, s.hoverTile.x, s.hoverTile.y),
         size = prefabSize(def, s.rotation),
@@ -290,6 +300,24 @@ export function createRenderer(canvas, s) {
       c.strokeStyle = check.valid ? 'rgba(105,190,255,.95)' : 'rgba(255,105,105,.95)';
       c.lineWidth = 2;
       c.strokeRect(p.x + 1, p.y + 1, w - 2, h - 2);
+      c.restore();
+    }
+    if (s.activeDeck !== 'Z0') {
+      const deck = s.technicalDecks?.[s.activeDeck];
+      c.save();
+      c.fillStyle = '#d7e8ef';
+      c.font = 'bold 12px sans-serif';
+      c.textAlign = 'left';
+      c.textBaseline = 'top';
+      c.fillText('TECHNICAL DECK ' + s.activeDeck + ' · SHIP HULL · UNBREAKABLE', 16, 16);
+      c.fillStyle = 'rgba(6,14,20,.92)';
+      c.strokeStyle = '#9bb9c5';
+      c.lineWidth = 2;
+      for (const point of deck?.shaft ?? []) {
+        const shaftPoint = pos(point.x, point.y);
+        c.fillRect(shaftPoint.x, shaftPoint.y, z, z);
+        c.strokeRect(shaftPoint.x + 1, shaftPoint.y + 1, z - 2, z - 2);
+      }
       c.restore();
     }
     if (s.hoverTile) {
