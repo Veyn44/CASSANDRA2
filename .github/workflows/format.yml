@@ -1,0 +1,57 @@
+name: Format source code
+
+on:
+  push:
+    branches:
+      - refactor/project-structure
+    paths:
+      - '**/*.js'
+      - '**/*.css'
+      - '**/*.html'
+      - '**/*.json'
+      - '**/*.md'
+      - 'package.json'
+      - '.prettierrc.json'
+      - '.prettierignore'
+      - '.github/workflows/format.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: format-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out working branch
+        uses: actions/checkout@v4
+        with:
+          ref: refactor/project-structure
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Format project files
+        run: npx --yes prettier@3.5.3 --write "**/*.{js,css,html,json,md}"
+      - name: Validate JavaScript syntax
+        run: find src -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: Check relative imports
+        run: node scripts/check-imports.js
+      - name: Check formatting
+        run: npx --yes prettier@3.5.3 --check "**/*.{js,css,html,json,md}"
+      - name: Commit formatting changes
+        run: |
+          if git diff --quiet; then
+            echo "No formatting changes needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "style: format project files with Prettier"
+          git pull --rebase origin refactor/project-structure
+          git push

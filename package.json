@@ -1,0 +1,15 @@
+{
+  "name": "cassandra",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write \"**/*.{js,css,html,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,css,html,json,md}\"",
+    "check:syntax": "find src -name '*.js' -print0 | xargs -0 -n1 node --check",
+    "check:imports": "node scripts/check-imports.js",
+    "check": "npm run format:check && npm run check:syntax && npm run check:imports"
+  },
+  "devDependencies": {
+    "prettier": "3.5.3"
+  }
+}

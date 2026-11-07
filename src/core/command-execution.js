@@ -1,0 +1,103 @@
+import { completePlanAction, completeModuleAction } from '../systems/construction-system.js';
+import { findPath, findWorkPath, isBlocked } from '../systems/navigation.js';
+
+const key = (x, y) => x + ',' + y;
+
+export function createCommandExecutor(s, refresh, note, objectAt, signal) {
+  const inside = (p) => p.x >= 0 && p.y >= 0 && p.x < 256 && p.y < 128;
+  function walk(path, done) {
+    if (!path || !path.length) {
+      note('NO ACCESSIBLE PATH');
+      return;
+    }
+    if (path.length === 1) {
+      done?.();
+      return;
+    }
+    s.pawn.moving = true;
+    let i = 1;
+    const step = () => {
+      if (signal.aborted) return;
+      if (i >= path.length) {
+        s.pawn.moving = false;
+        refresh();
+        done?.();
+        return;
+      }
+      s.pawn.x = path[i].x;
+      s.pawn.y = path[i].y;
+      i++;
+      refresh();
+      setTimeout(step, 115);
+    };
+    setTimeout(step, 115);
+  }
+
+  function command(p) {
+    if (!inside(p) || s.pawn.moving) return;
+    if (!s.pawn.selected) {
+      note('SELECT THE RESEARCHER FIRST');
+      return;
+    }
+    const obj = objectAt(p);
+    if (obj && !obj.built) {
+      if (s.pawn.op < 1) {
+        note('NOT ENOUGH AP · 1 AP REQUIRED');
+        return;
+      }
+      if (!s.devMode && s.resources.titanium < 1) {
+        note('INSUFFICIENT TITANIUM');
+        return;
+      }
+      const path = findWorkPath(s, obj.x, obj.y, obj.w, obj.h);
+      if (!path) {
+        note('NO ACCESSIBLE WORKING POSITION');
+        return;
+      }
+      note('MOVING TO MODULE BLUEPRINT');
+      walk(path, () => {
+        const result = completeModuleAction(s, obj.id);
+        note(result.message);
+        refresh();
+      });
+      return;
+    }
+    const plan = (obj && s.map.plans[key(obj.x, obj.y)]) || s.map.plans[key(p.x, p.y)];
+    if (plan) {
+      if (s.pawn.op < 1) {
+        note('NOT ENOUGH AP · 1 AP REQUIRED');
+        return;
+      }
+      const tx = plan.type === 'demolishModule' && obj ? obj.x : p.x,
+        ty = plan.type === 'demolishModule' && obj ? obj.y : p.y;
+      const path = findWorkPath(s, tx, ty);
+      if (!path) {
+        note('NO ACCESSIBLE WORKING POSITION');
+        return;
+      }
+      note('MOVING TO CONSTRUCTION BLUEPRINT');
+      walk(path, () => {
+        const result = completePlanAction(s, tx, ty);
+        note(result.message);
+        refresh();
+      });
+      return;
+    }
+    if (isBlocked(s, p.x, p.y)) {
+      note('UNREACHABLE · TARGET IS NOT WALKABLE');
+      return;
+    }
+    const path = findPath(s, p);
+    if (!path) {
+      note('NO PATH TO DESTINATION');
+      return;
+    }
+    note('RESEARCHER MOVING · NO AP COST');
+    walk(path, () => {
+      note('RESEARCHER ARRIVED · NO AP COST');
+      refresh();
+    });
+  }
+
+  return command;
+}

@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#0b1018" />
+    <title>CASSANDRA</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main id="main-menu" class="menu-screen">
+      <div class="menu-content">
+        <div class="menu-emblem">C</div>
+        <p class="menu-eyebrow">DEEP SPACE RESEARCH VESSEL</p>
+        <h1>CASSANDRA</h1>
+        <p class="menu-subtitle">THE UNIVERSE DOES NOT EXPLAIN ITSELF.</p>
+        <nav class="menu-actions">
+          <button id="new-game" class="menu-button menu-button-primary">
+            NEW GAME <span>→</span></button
+          ><button id="dev-new-game" class="menu-button">DEV NEW GAME <span>⚙</span></button
+          ><button id="open-options" class="menu-button">OPTIONS</button>
+        </nav>
+        <p class="menu-build">RESEARCH BUILD 0008</p>
+      </div>
+      <section id="options-panel" hidden>
+        <h2>OPTIONS</h2>
+        <p>OPTIONS WILL BE AVAILABLE IN A FUTURE BUILD.</p>
+        <button id="options-back" class="menu-button">BACK</button>
+      </section>
+    </main>
+    <main id="game-shell" hidden>
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">C</span>
+          <div><strong>CASSANDRA</strong><small>RESEARCH VESSEL · PROTOTYPE</small></div>
+        </div>
+        <div class="turn-readout">
+          <span>SHIP TIME</span><strong id="turn-label">DAY 01 · TURN 01</strong
+          ><small>12 HOURS / TURN</small>
+        </div>
+        <div class="right">SYSTEMS NOMINAL <b id="dev-indicator" hidden>DEV MODE</b></div>
+      </header>
+      <div class="pawn-toolbar">
+        <button id="sections-toggle" class="sections-toggle">SECTIONS</button><span>CREW</span
+        ><button id="pawn-select" class="active">■ RESEARCHER · LV 01</button
+        ><span id="mode-label">SELECT / COMMAND MODE</span
+        ><button id="grid-toggle" aria-pressed="true">GRID: ON</button>
+        <div id="dev-tools-wrap" hidden>
+          <button id="dev-tools-button" aria-expanded="false">DEV ▾</button>
+          <div id="dev-tools-menu" hidden>
+            <button id="open-ast-gen">AST GEN</button
+            ><button id="dev-creator-toggle">DEV CREATOR</button
+            ><button id="damage-simulator-toggle">DAMAGE SIMULATOR: OFF</button
+            ><button id="dev-export-ship-layout">EXPORT SHIP JSON</button>
+          </div>
+        </div>
+        <button id="next-turn">NEXT TURN →</button>
+      </div>
+      <section class="layout">
+        <aside class="build-sidebar">
+          <h3>CONSTRUCTION</h3>
+          <button id="build-menu-toggle" class="build-main">◈ MATERIAL <span>›</span></button>
+          <div id="build-categories" hidden>
+            <h4>SELECT MATERIAL</h4>
+            <button id="material-titanium" class="build-option material-option active">
+              ◈ TITANIUM <small id="titanium-stock">100 units available</small>
+            </button>
+          </div>
+          <button id="modules-tab" class="build-main modules-tab">
+            ▦ BUILD CATALOG <span>›</span></button
+          ><button id="erase-tool" class="build-main erase-main">⌫ ERASER</button>
+          <section class="plan-legend">
+            <h4>BUILD QUEUE</h4>
+            <p>Planned <b id="planned-count">0</b></p>
+            <p>Completed <b id="tile-count">9</b></p>
+            <p>Titanium <b id="titanium-count">100</b></p>
+          </section>
+          <footer>LEFT CLICK / DRAG: PLACE PLAN<br />RIGHT CLICK: CANCEL / COMMAND</footer>
+        </aside>
+        <div class="viewport-wrap">
+          <canvas id="game-canvas" aria-label="Ship construction map"></canvas>
+          <div class="hint">
+            WASD: camera · wheel: zoom · MMB: pan · LMB: select / place · RMB: command
+          </div>
+          <div id="tile-inspector" class="tile-inspector">HOVER OVER A TILE TO INSPECT</div>
+          <section id="module-drawer" class="module-drawer" hidden>
+            <header>
+              <strong>BUILD CATALOG</strong><span>SELECT AN ITEM · Q / E TO ROTATE</span
+              ><button id="close-module-drawer" aria-label="Close modules">×</button>
+            </header>
+            <nav
+              id="catalog-categories"
+              class="catalog-categories"
+              aria-label="Build categories"
+            ></nav>
+            <div id="prefab-list" class="prefab-grid"></div>
+          </section>
+          <section id="ast-gen-panel" class="ast-gen-panel" hidden>
+            <header>
+              <strong>ASTEROID GENERATOR</strong
+              ><button id="close-ast-gen" aria-label="Close asteroid generator">×</button>
+            </header>
+            <div class="ast-gen-grid">
+              <label>SEED<input id="ast-seed" type="number" value="1" /></label
+              ><label
+                >MAJOR BODY SIZE X<input
+                  id="ast-size-x"
+                  type="number"
+                  min="3"
+                  max="120"
+                  value="70" /></label
+              ><label
+                >MAJOR BODY SIZE Y<input
+                  id="ast-size-y"
+                  type="number"
+                  min="3"
+                  max="100"
+                  value="40" /></label
+              ><label
+                >TOTAL BODIES<input
+                  id="ast-body-count"
+                  type="number"
+                  min="1"
+                  max="8"
+                  value="1" /></label
+              ><label
+                >CAVITY SIZE %<input
+                  id="ast-cavity-size"
+                  type="number"
+                  min="0"
+                  max="30"
+                  step="1"
+                  value="10" /></label
+              ><label
+                >NUMBER OF CAVITIES<input
+                  id="ast-cavity-count"
+                  type="number"
+                  min="0"
+                  max="20"
+                  value="3"
+              /></label>
+            </div>
+            <button id="generate-asteroid" class="ast-generate-button">GENERATE ASTEROID</button
+            ><button id="generate-next-asteroid" class="ast-generate-button">GEN NEXT</button>
+            <p id="ast-gen-result">READY · ANCHOR 192, 64</p>
+          </section>
+          <div class="map-coords">MAP 256 × 128</div>
+        </div>
+        <aside class="info-sidebar">
+          <section class="panel">
+            <h3>CASSANDRA STATUS</h3>
+            <h2>CASSANDRA</h2>
+            <small>RESEARCH VESSEL</small>
+            <p>Hull integrity <b>100%</b></p>
+            <p>Oxygen reserve <b>100%</b></p>
+            <p>Power reserve <b>100%</b></p>
+            <p>Connected hull <b id="connected-count">9 tiles</b></p>
+            <p>Ship hull footprint <b id="ship-hull-count">9 tiles</b></p>
+          </section>
+          <section class="panel" id="selection-panel">
+            <h3>PAWN STATUS</h3>
+            <h2>RESEARCHER</h2>
+            <small>HUMAN · LEVEL 01</small>
+            <p>Condition <b>Stable</b></p>
+            <p>Operational points <b id="pawn-ap">12 / 12</b></p>
+            <p>Position <b id="pawn-position">64, 64</b></p>
+          </section>
+          <section class="panel">
+            <h3>STATUS</h3>
+            <p id="construction-note">Select BUILD to plan ship construction.</p>
+            <div id="object-details" hidden></div>
+          </section>
+        </aside>
+      </section>
+      <section id="sections-panel" class="sections-overlay" hidden></section>
+      <section id="pause-menu" class="modal-screen" hidden>
+        <div class="modal-card">
+          <p class="menu-eyebrow">SYSTEM PAUSED</p>
+          <h2>PAUSE MENU</h2>
+          <button id="pause-continue" class="menu-button menu-button-primary">CONTINUE</button
+          ><button class="menu-button" disabled>SAVE GAME · NOT AVAILABLE</button
+          ><button class="menu-button" disabled>LOAD GAME · NOT AVAILABLE</button
+          ><button id="pause-main-menu" class="menu-button">MAIN MENU</button>
+        </div>
+      </section>
+      <section id="leave-confirm" class="modal-screen" hidden>
+        <div class="modal-card">
+          <p class="menu-eyebrow">UNSAVED PROGRESS</p>
+          <h2>RETURN TO MAIN MENU?</h2>
+          <p>Current progress will be lost.</p>
+          <button id="confirm-leave-yes" class="menu-button menu-button-primary">LEAVE GAME</button
+          ><button id="confirm-leave-no" class="menu-button">CANCEL</button>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
