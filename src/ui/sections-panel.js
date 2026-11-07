@@ -60,9 +60,10 @@ export function createSectionsPanel(root, s, onChange) {
           environment: 'SEALED SHIP STRUCTURE',
           activeTiles: Object.keys(technicalDeck?.tiles ?? {}).length,
         };
+    const technicalFootprint = new Set(technicalDeck?.footprint ?? []);
     const allTiles = deckLevel === 'Z0'
       ? Object.entries(s.map.tiles).filter(([, tile]) => tile?.hull).map(([tileKey]) => tileKey.split(',').map(Number))
-      : (technicalDeck?.footprint ?? []).map((tileKey) => tileKey.split(',').map(Number));
+      : [...technicalFootprint].map((tileKey) => tileKey.split(',').map(Number));
     const minX = allTiles.length ? Math.max(0, Math.min(...allTiles.map((p) => p[0])) - 2) : 0;
     const maxX = allTiles.length
       ? Math.min(s.map.width - 1, Math.max(...allTiles.map((p) => p[0])) + 2)
@@ -79,6 +80,10 @@ export function createSectionsPanel(root, s, onChange) {
       for (let x = minX; x <= maxX; x++) {
         const tileKey = x + ',' + y;
         if (deckLevel !== 'Z0') {
+          if (!technicalFootprint.has(tileKey)) {
+            grid.push('<div class="section-map-cell unclassified-cell" title="OUTSIDE DECK FOOTPRINT"></div>');
+            continue;
+          }
           const shaft = technicalDeck?.shaft.some((point) => point.x === x && point.y === y);
           grid.push('<div class="section-map-cell ' + (shaft ? 'technical-shaft-cell' : 'technical-hull-cell') +
             '" title="' + (shaft ? 'CENTRAL SHAFT' : 'SEALED SHIP HULL') + '"></div>');
@@ -204,18 +209,18 @@ export function createSectionsPanel(root, s, onChange) {
       DECK_LEVELS.map((level) => '<button data-deck="' + level + '" class="' + (deckLevel === level ? 'active' : '') + '">' + level + '</button>').join('') +
       '</nav><div class="sections-layout"><aside class="sections-panel-list"><h3>' + (deckLevel === 'Z0' ? 'CONTROL PANELS' : 'DECK STATUS') + '</h3>' +
       (deckLevel === 'Z0' ? panelRows || '<p class="sections-empty">NO CONTROL PANELS INSTALLED</p>' : '<p class="sections-empty">TECHNICAL DECK · READ ONLY</p>') +
-      '</aside><section class="sections-blueprint"><h3>SHIP BLUEPRINT</h3><div class="section-map" style="grid-template-columns:repeat(' +
+      '</aside><section class="sections-blueprint"><h3>' + (deckLevel === 'Z0' ? 'SHIP BLUEPRINT' : 'DECK BLUEPRINT') + '</h3><div class="section-map" style="grid-template-columns:repeat(' +
       width +
       ',minmax(5px,1fr));grid-template-rows:repeat(' +
       height +
       ',minmax(5px,1fr))">' +
       grid.join('') +
-      '</div><p class="blueprint-legend"><i></i> SELECTED SECTION <span>·</span> CLICK SPACE FOR VACUUM</p></section><aside class="sections-info"><h3>SECTION INFO</h3><div class="section-info-card"><small>' +
+      '</div><p class="blueprint-legend"><i></i> ' + (deckLevel === 'Z0' ? 'SELECTED SECTION · CLICK SPACE FOR VACUUM' : 'SEALED HULL · CENTRAL SHAFT · READ ONLY') + '</p></section><aside class="sections-info"><h3>' + (deckLevel === 'Z0' ? 'SECTION INFO' : 'DECK INFO') + '</h3><div class="section-info-card"><small>' +
       esc(info.type === 'VACUUM' ? 'EXTERNAL ENVIRONMENT' : info.id) +
       '</small><h2>' +
       esc(info.name) +
       '</h2><span class="section-status ' +
-      (info.airtightness === 'STABLE' || info.type === 'VACUUM'
+      (info.airtightness === 'STABLE' || info.airtightness === 'SEALED' || info.type === 'VACUUM'
         ? 'sealed'
         : info.airtightness === 'CAUTIOUS'
           ? 'unsealed'
