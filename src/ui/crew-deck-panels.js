@@ -60,6 +60,7 @@ export function createCrewDeckPanels(state, refresh, note) {
 
   function render() {
     if (!deckRoot || !crewRoot) return;
+    const color = state.pawn.color ?? PAWN_COLOR;
     deckRoot.innerHTML = DECKS.map(({ id, label }) =>
       '<div class="deck-row ' +
       (state.activeDeck === id ? 'active' : '') +
