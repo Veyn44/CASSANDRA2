@@ -243,7 +243,7 @@ export function createRenderer(canvas, s) {
         c.restore();
       }
     }
-    if (s.accessShaft?.cells?.length && s.activeDeck === 'Z0') {
+    if (s.accessShaft?.cells?.length) {
       const shaft = s.accessShaft, p = pos(shaft.x, shaft.y);
       c.save();
       c.fillStyle = '#142a35';
@@ -332,11 +332,6 @@ export function createRenderer(canvas, s) {
       c.fillStyle = 'rgba(6,14,20,.92)';
       c.strokeStyle = '#9bb9c5';
       c.lineWidth = 2;
-      for (const point of deck?.shaft ?? []) {
-        const shaftPoint = pos(point.x, point.y);
-        c.fillRect(shaftPoint.x, shaftPoint.y, z, z);
-        c.strokeRect(shaftPoint.x + 1, shaftPoint.y + 1, z - 2, z - 2);
-      }
       c.restore();
     }
     if (s.hoverTile) {
