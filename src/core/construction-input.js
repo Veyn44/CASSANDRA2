@@ -1,5 +1,5 @@
 import { placePrefab } from '../systems/prefab-manager.js';
-import { createTechnicalDecks } from '../systems/technical-deck-generator.js';
+import { syncTechnicalDecksState } from '../systems/technical-deck-generator.js';
 
 const key = (x, y) => x + ',' + y;
 
@@ -28,7 +28,7 @@ export function createConstructionInput(s, inside, objectAt, refresh, note) {
           aluminiumWall: false,
           aluminiumWallIntegrity: null,
         };
-        s.technicalDecks = createTechnicalDecks(s.map.tiles);
+        syncTechnicalDecksState(s);
         note('HULL BUILT · DEV CREATOR');
       } else {
         s.map.plans[k] = { type: 'hull', materialFamily: 'titanium' };
