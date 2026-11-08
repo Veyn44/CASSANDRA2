@@ -1625,3 +1625,34 @@ body {
   .crew-strip { top: 6px; left: 6px; right: 6px; padding: 6px; }
   .crew-strip .crew-card { flex-basis: 166px; min-width: 166px; }
 }
+
+/* DEV NEW GAME · Access shaft context menu */
+.shaft-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 172px;
+  padding: 6px;
+  border: 1px solid rgba(139, 183, 199, .55);
+  border-radius: 7px;
+  background: rgba(9, 19, 28, .97);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .48);
+}
+.shaft-menu[hidden], .shaft-deck-options[hidden] { display: none; }
+.shaft-menu button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #d8e7ed;
+  font: 600 11px/1.2 sans-serif;
+  letter-spacing: .06em;
+  text-align: left;
+  cursor: pointer;
+}
+.shaft-menu button:hover { background: rgba(94, 160, 180, .2); color: #fff; }
+.shaft-deck-options { padding: 4px 0 2px 10px; border-top: 1px solid rgba(139,183,199,.2); }
+.shaft-deck-options button { color: #9fc6d2; }
