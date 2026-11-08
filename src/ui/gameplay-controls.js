@@ -39,13 +39,16 @@ export function bindGameplayControls({
     );
     refresh();
   };
-  $('#pawn-select').onclick = () => {
-    const state = getState();
-    state.pawn.selected = true;
-    state.selectedObject = null;
-    cancelTool();
-    noteText('PAWN SELECTED · RIGHT-CLICK A WALKABLE TILE OR CONSTRUCTION PLAN.');
-  };
+  const pawnSelectButton = $('#pawn-select');
+  if (pawnSelectButton) {
+    pawnSelectButton.onclick = () => {
+      const state = getState();
+      state.pawn.selected = true;
+      state.selectedObject = null;
+      cancelTool();
+      noteText('PAWN SELECTED · RIGHT-CLICK A WALKABLE TILE OR CONSTRUCTION PLAN.');
+    };
+  }
   gridBtn.onclick = () => {
     const state = getState();
     state.map.gridVisible = !state.map.gridVisible;
