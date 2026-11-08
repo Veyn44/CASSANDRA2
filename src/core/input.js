@@ -89,7 +89,7 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
     if (e.button === 2) {
       e.preventDefault();
       const p = tile(e.clientX, e.clientY);
-      if (onShaft(p)) { showShaftMenu(e); return; }
+      if (s.devMode && onShaft(p)) { showShaftMenu(e); return; }
       closeShaftMenu();
       if (s.activeDeck !== 'Z0') {
         note('TECHNICAL DECKS ARE READ-ONLY');
