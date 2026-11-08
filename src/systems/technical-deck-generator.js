@@ -22,15 +22,10 @@ export function createTechnicalDecks(zeroLevelTiles) {
     });
   if (!footprint.length) return {};
 
-  const points = footprint.map((position) => position.split(',').map(Number));
-  const minX = Math.min(...points.map(([x]) => x));
-  const maxX = Math.max(...points.map(([x]) => x));
-  const minY = Math.min(...points.map(([, y]) => y));
-  const maxY = Math.max(...points.map(([, y]) => y));
-  // Keep the former 2x2 shaft's upper-left anchor as the single 1x1 access tile.
-  // This makes the location deterministic and preserves the ship's established center layout.
-  const shaftX = Math.floor((minX + maxX - 1) / 2);
-  const shaftY = Math.floor((minY + maxY - 1) / 2);
+  // The access shaft is anchored to the geometric center of the left 128x128 canvas,
+  // independent of the current ship footprint or layout.
+  const shaftX = 64;
+  const shaftY = 64;
   const footprintSet = new Set(footprint);
   const shaft = footprintSet.has(key(shaftX, shaftY)) ? [{ x: shaftX, y: shaftY }] : [];
 
