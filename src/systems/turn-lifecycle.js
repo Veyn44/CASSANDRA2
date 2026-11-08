@@ -14,7 +14,7 @@ const BOUNDARY_DIRS = [
   [0, -1],
 ];
 
-function inspectBoundaryWalls(state, section) {
+function inspectBoundaryWalls(state, section, vacuumSet, tileToSection) {
   const walls = new Map();
   for (const point of section.tiles) {
     for (const [dx, dy] of BOUNDARY_DIRS) {
@@ -25,11 +25,23 @@ function inspectBoundaryWalls(state, section) {
       const integrity = tile.aluminiumWall
         ? (tile.aluminiumWallIntegrity ?? 100)
         : (tile.wallIntegrity ?? 100);
+      const vacuumCells = BOUNDARY_DIRS
+        .map(([ax, ay]) => x + ax + ',' + (y + ay))
+        .filter((cell) => vacuumSet.has(cell));
+      const adjacentSections = [
+        ...new Set(
+          BOUNDARY_DIRS
+            .map(([ax, ay]) => tileToSection[x + ax + ',' + (y + ay)])
+            .filter((id) => id && id !== section.id)
+        ),
+      ];
       walls.set(x + ',' + y, {
         x,
         y,
         kind: tile.aluminiumWall ? 'ALUMINIUM WALL' : 'TITANIUM WALL',
         integrity,
+        vacuumCells,
+        adjacentSections,
       });
     }
   }
@@ -47,7 +59,7 @@ function environmentDiagnostics(state, sections, previousState, nextState) {
         state.pressure ?? 'UNSET',
         state.temperature == null ? 'N/A' : state.temperature + ' C',
       ].join(' / ');
-    const boundaryWalls = inspectBoundaryWalls(state, section),
+    const boundaryWalls = inspectBoundaryWalls(state, section, environment.vacuumSet, environment.tileToSection),
       damagedBoundaryWalls = boundaryWalls.filter((wall) => wall.integrity < 100);
     const cautious = section.cautiousWalls.map(
       (wall) => wall.kind + ' ' + wall.x + ',' + wall.y + ' ' + wall.integrity + '%'
@@ -83,7 +95,7 @@ export function endTurn(s) {
   const environment = advanceEnvironment(s);
   const diagnostics = environmentDiagnostics(
     s,
-    environment.sections,
+    environment,
     previousEnvironmentState,
     s.environmentState ?? {}
   );
