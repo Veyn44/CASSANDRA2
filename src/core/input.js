@@ -34,24 +34,38 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
   const place = createConstructionInput(s, inside, objectAt, refresh, note);
   const executeCommand = createCommandExecutor(s, refresh, note, objectAt, controller.signal);
   const shaftMenu = document.querySelector('#shaft-menu');
-  const onShaft = (p) => s.accessShaft?.cells?.some((cell) => cell.x === p.x && cell.y === p.y);
+  const onShaft = (p) =>
+    s.accessShaft?.cells?.some((cell) => cell.x === p.x && cell.y === p.y);
   function shaftArrivalTile(deckId) {
     const shaftCells = s.accessShaft?.cells ?? [];
     const candidates = new Map();
     for (const cell of shaftCells) {
-      for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
-        const x = cell.x + dx, y = cell.y + dy, k = key(x, y);
-        if (shaftCells.some((shaftCell) => shaftCell.x === x && shaftCell.y === y)) continue;
-        const walkable = deckId === 'Z0'
-          ? Boolean(s.map.tiles[k]?.hull) && !isBlocked(s, x, y)
-          : Boolean(s.technicalDecks?.[deckId]?.tiles?.[k]);
-        if (walkable) candidates.set(k, { x, y });
+      for (const [dx, dy] of [
+        [0, -1],
+        [1, 0],
+        [0, 1],
+        [-1, 0],
+      ]) {
+        const x = cell.x + dx;
+        const y = cell.y + dy;
+        const position = key(x, y);
+        if (shaftCells.some((shaftCell) => shaftCell.x === x && shaftCell.y === y))
+          continue;
+        const walkable =
+          deckId === 'Z0'
+            ? Boolean(s.map.tiles[position]?.hull) && !isBlocked(s, x, y)
+            : Boolean(s.technicalDecks?.[deckId]?.tiles?.[position]);
+        if (walkable) candidates.set(position, { x, y });
       }
     }
-    return [...candidates.values()].sort((a, b) =>
-      Math.abs(a.x - s.pawn.x) + Math.abs(a.y - s.pawn.y) -
-      (Math.abs(b.x - s.pawn.x) + Math.abs(b.y - s.pawn.y))
-    )[0] ?? { x: s.accessShaft.x + 1, y: s.accessShaft.y + 1 };
+    return (
+      [...candidates.values()].sort(
+        (a, b) =>
+          Math.abs(a.x - s.pawn.x) +
+          Math.abs(a.y - s.pawn.y) -
+          (Math.abs(b.x - s.pawn.x) + Math.abs(b.y - s.pawn.y))
+      )[0] ?? { x: s.accessShaft.x + 1, y: s.accessShaft.y + 1 }
+    );
   }
   function facePawnToward(point) {
     if (!s.pawn.selected || (s.pawn.deck ?? 'Z0') !== s.activeDeck) return;
@@ -80,7 +94,7 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
             .map((deck) => '<button type="button" data-shaft-deck="' + deck + '">' + deck + '</button>').join('') +
           '</div>'
         : '') +
-      '<div class="shaft-menu-footer">' + s.activeDeck + '</div>';
+      '';
     shaftMenu.style.left = Math.min(event.clientX, window.innerWidth - 190) + 'px';
     shaftMenu.style.top = Math.min(event.clientY, window.innerHeight - 150) + 'px';
     shaftMenu.hidden = false;
