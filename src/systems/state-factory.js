@@ -244,7 +244,8 @@ export function createInitialState({ mode = 'normal' } = {}) {
     nextObjectId: 21,
     hoverTile: null,
     activeDeck: 'Z0',
-    technicalDecks,\n    accessShaft: {
+    technicalDecks,
+    accessShaft: {
       x: shaftCells.length ? Math.min(...shaftCells.map((p) => p.x)) : 0,
       y: shaftCells.length ? Math.min(...shaftCells.map((p) => p.y)) : 0,
       w: 2, h: 2, cells: shaftCells.map((p) => ({ ...p })),
