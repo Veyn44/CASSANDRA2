@@ -1,6 +1,10 @@
 import { createGameConfig } from '../core/game-config.js';
 import { advanceEnvironment } from './section-manager.js';
-import { createTechnicalDecks, DECK_ENVIRONMENT_TAGS, DECK_LEVELS } from './technical-deck-generator.js';
+import {
+  createTechnicalDecks,
+  DECK_ENVIRONMENT_TAGS,
+  DECK_LEVELS,
+} from './technical-deck-generator.js';
 import { syncAccessShaftPressureLocks } from './access-shaft-system.js';
 const key = (x, y) => x + ',' + y;
 export function createInitialState({ mode = 'normal' } = {}) {
@@ -248,11 +252,20 @@ export function createInitialState({ mode = 'normal' } = {}) {
     technicalDecks,
     deckEnvironmentTags: { ...DECK_ENVIRONMENT_TAGS },
     accessShaft: {
-      decks: Object.fromEntries(DECK_LEVELS.map((level) => [level, { manualLock: false, autoLock: false, lockReason: null }])),
+      decks: Object.fromEntries(
+        DECK_LEVELS.map((level) => [
+          level,
+          { manualLock: false, autoLock: false, lockReason: null },
+        ])
+      ),
       x: shaftCells.length ? Math.min(...shaftCells.map((p) => p.x)) : 0,
       y: shaftCells.length ? Math.min(...shaftCells.map((p) => p.y)) : 0,
-      w: 2, h: 2, cells: shaftCells.map((p) => ({ ...p })),
-      locked: false, autoLocked: false, lockReason: null,
+      w: 2,
+      h: 2,
+      cells: shaftCells.map((p) => ({ ...p })),
+      locked: false,
+      autoLocked: false,
+      lockReason: null,
     },
     map: {
       width: 256,
