@@ -15,6 +15,9 @@ export function createCommandExecutor(s, refresh, note, objectAt, signal) {
       if (signal.aborted) return;
       if (i >= path.length) { s.pawn.moving = false; refresh(); done?.(); return; }
       const point = path[i++];
+      const dx = point.x - s.pawn.x;
+      const dy = point.y - s.pawn.y;
+      if (dx || dy) s.pawn.facing = Math.atan2(dy, dx);
       if (point.deck && point.deck !== (s.pawn.deck ?? 'Z0')) {
         s.pawn.deck = point.deck; s.activeDeck = point.deck;
       }
