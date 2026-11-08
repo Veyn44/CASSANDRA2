@@ -117,42 +117,6 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
       executeCommand(destination, deck);
     }
   });
-        .map((deck) => '<button type="button" data-shaft-deck="' + deck + '">' + deck + '</button>').join('') +
-      '</div>';
-    shaftMenu.style.left = Math.min(event.clientX, window.innerWidth - 190) + 'px';
-    shaftMenu.style.top = Math.min(event.clientY, window.innerHeight - 150) + 'px';
-    shaftMenu.hidden = false;
-  }
-  if (shaftMenu) listen(shaftMenu, 'click', (event) => {
-    const action = event.target.closest('[data-shaft-action]')?.dataset.shaftAction;
-    if (action === 'lock') {
-      const deck = s.activeDeck;
-      const access = s.accessShaft.decks?.[deck];
-      if (access?.autoLock) note('ACCESS SHAFT LOCKED · PRESSURE SAFETY');
-      else if (access) {
-        access.manualLock = !access.manualLock;
-        syncAccessShaftPressureLocks(s);
-        note(access.manualLock ? 'ACCESS LOCKED · ' + deck : 'ACCESS UNLOCKED · ' + deck);
-      } else {
-        s.accessShaft.locked = !s.accessShaft.locked;
-        note(s.accessShaft.locked ? 'ACCESS SHAFT LOCKED' : 'ACCESS SHAFT UNLOCKED');
-      }
-      closeShaftMenu(); refresh(); return;
-    }
-    if (action === 'go') {
-      const list = shaftMenu.querySelector('.shaft-deck-options');
-      if (list) list.hidden = !list.hidden;
-      return;
-    }
-    const deck = event.target.closest('[data-shaft-deck]')?.dataset.shaftDeck;
-    if (deck) {
-      s.activeDeck = deck;
-      s.camera.x = s.accessShaft.x + 1;
-      s.camera.y = s.accessShaft.y + 1;
-      s.activeTool = null; s.selectedObject = null;
-      closeShaftMenu(); refresh(); note('DECK VIEW · ' + deck);
-    }
-  });
   listen(document, 'click', (event) => {
     if (shaftMenu && !shaftMenu.hidden && !shaftMenu.contains(event.target)) closeShaftMenu();
   });
