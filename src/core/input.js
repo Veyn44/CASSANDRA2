@@ -233,7 +233,7 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
         const tile = deck?.tiles[key(p.x, p.y)];
         const shaft = deck?.shaft.some((point) => point.x === p.x && point.y === p.y);
         inspector.innerHTML = '<strong>' + (tile ? 'SHIP HULL' : shaft ? 'CENTRAL SHAFT' : 'OUTSIDE DECK FOOTPRINT') + '</strong><br>' +
-          (tile ? 'Undamageable · Non-buildable · No integrity' : shaft ? '2 × 2 vertical access void' : 'Derived directly from Z0 footprint') + '<br>ENVIRONMENT · ' + (deck?.environmentTag ?? 'N/A') +
+          (tile ? 'Undamageable · Non-buildable · No integrity' : shaft ? '1 × 1 vertical access shaft · ladder and pressure-sealed hatch' : 'Derived directly from Z0 footprint') + '<br>ENVIRONMENT · ' + (deck?.environmentTag ?? 'N/A') +
           '<br>LEVEL ' + s.activeDeck + ' · POSITION ' + p.x + ', ' + p.y;
       } else {
         const t = s.map.tiles[key(p.x, p.y)],
