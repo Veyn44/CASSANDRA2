@@ -243,7 +243,25 @@ export function createRenderer(canvas, s) {
         c.restore();
       }
     }
-    if (s.activeDeck === 'Z0') {
+    if (s.accessShaft?.cells?.length && s.activeDeck === 'Z0') {
+      const shaft = s.accessShaft, p = pos(shaft.x, shaft.y);
+      c.save();
+      c.fillStyle = '#142a35';
+      c.strokeStyle = shaft.locked ? '#d4776e' : '#72c7d6';
+      c.lineWidth = Math.max(2, z * 0.07);
+      c.fillRect(p.x + z * 0.04, p.y + z * 0.04, z * 1.92, z * 1.92);
+      c.strokeRect(p.x + z * 0.04, p.y + z * 0.04, z * 1.92, z * 1.92);
+      c.beginPath();
+      c.moveTo(p.x + z, p.y + z * 0.05); c.lineTo(p.x + z, p.y + z * 1.95);
+      c.moveTo(p.x + z * 0.05, p.y + z); c.lineTo(p.x + z * 1.95, p.y + z); c.stroke();
+      c.fillStyle = '#e1f3f7';
+      c.font = 'bold ' + Math.max(8, z * 0.3) + 'px sans-serif';
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText('L', p.x + z * 1.5, p.y + z * 1.5);
+      c.fillText(shaft.locked ? 'LOCK' : 'OPEN', p.x + z * 0.5, p.y + z * 0.5);
+      c.restore();
+    }
+    if ((s.pawn.deck ?? 'Z0') === s.activeDeck) {
       const pawn = pos(s.pawn.x, s.pawn.y),
         m = z * 0.29;
       const pawnColor = s.pawn.color ?? C.pawn;
