@@ -1,8 +1,8 @@
 import { detectSections } from './section-manager.js';
 
 /**
- * Read the existing Z0 pressure snapshot and derive the access-shaft safety
- * interlock. This module never advances or mutates the atmosphere simulation.
+ * Read Z0 pressure state and derive the access-shaft safety interlock.
+ * This module never advances or mutates the atmosphere simulation.
  */
 export function syncAccessShaftPressureLocks(state) {
   const shaft = state.accessShaft;
@@ -20,7 +20,7 @@ export function syncAccessShaftPressureLocks(state) {
   if (z0) {
     const sections = [...adjacentSections.values()];
     const unsafe = sections.filter((section) => section.pressure !== 'OPTIMAL');
-    // Fail closed if the shaft cannot be associated with a known pressurized Z0 section.
+    // Fail closed when no pressurized Z0 section can be associated with the shaft.
     z0.autoLock = sections.length === 0 || unsafe.length > 0;
     z0.lockReason = z0.autoLock
       ? sections.length === 0
@@ -29,7 +29,7 @@ export function syncAccessShaftPressureLocks(state) {
       : null;
   }
 
-  // Keep legacy global fields synchronized for older UI or callers.
+  // Compatibility fields are retained for older UI and save-state consumers.
   shaft.autoLocked = Boolean(z0?.autoLock);
   shaft.locked = Boolean(z0?.manualLock || z0?.autoLock);
   shaft.lockReason = z0?.lockReason ?? null;
