@@ -1,3 +1,4 @@
+import { applyIntegrityChange, createIntegrityContext } from './integrity-system.js';
 const key = (x, y) => x + ',' + y;
 const DIRS = [
   [1, 0],
@@ -308,11 +309,7 @@ function boundaryLeakCounts(s, data, section) {
 function isAluminiumDoor(object) {
   return object?.type === 'STR0004' || object?.type === 'STR0005';
 }
-function degradeIntegrity(target) {
-  const damage = 2 + Math.floor(Math.random() * 9);
-  target.integrity = Math.max(25, (target.integrity ?? 100) - damage);
-}
-function degradeAluminiumInsideSection(s, data, section) {
+function degradeAluminiumInsideSection(s, data, section, integrityContext) {
   const floorKeys = new Set(section.tiles.map((p) => key(p.x, p.y)));
   for (const object of Object.values(s.map.objects)) {
     const aluminiumDoor = isAluminiumDoor(object);
@@ -335,11 +332,16 @@ function degradeAluminiumInsideSection(s, data, section) {
         }
       }
     if (!inside) continue;
-    degradeIntegrity(object);
+    applyIntegrityChange(object, {
+      entityId: 'object:' + object.id,
+      materialFamily: object.materialFamily ?? 'aluminium',
+      source: 'environment',
+      context: integrityContext,
+    });
   }
 }
-function degradeExposedAluminium(s, data) {
-  // Aluminium boundary walls and doors lose airtightness when they border LOW pressure or vacuum.
+function degradeExposedAluminium(s, data, integrityContext) {
+  // Boundary aluminium loses airtightness when it borders LOW pressure or vacuum.
   const affectedSections = new Set(
     data.sections
       .filter((section) => section.pressure === 'LOW' || section.pressure === 'VACUUM')
@@ -357,21 +359,35 @@ function degradeExposedAluminium(s, data) {
     if (!tile?.aluminiumWall) continue;
     const [x, y] = position.split(',').map(Number);
     if (shouldDegradeAt(x, y))
-      degradeIntegrity({
-        get integrity() {
-          return tile.aluminiumWallIntegrity ?? 100;
+      applyIntegrityChange(
+        {
+          get integrity() {
+            return tile.aluminiumWallIntegrity ?? 100;
+          },
+          set integrity(value) {
+            tile.aluminiumWallIntegrity = value;
+          },
         },
-        set integrity(value) {
-          tile.aluminiumWallIntegrity = value;
-        },
-      });
+        {
+          entityId: 'tile:aluminium-wall:' + position,
+          materialFamily: 'aluminium',
+          source: 'environment',
+          context: integrityContext,
+        }
+      );
   }
   for (const door of Object.values(s.map.objects)) {
     if (!isAluminiumDoor(door) || door.built === false) continue;
     let exposed = false;
     for (let y = door.y; y < door.y + door.h && !exposed; y++)
       for (let x = door.x; x < door.x + door.w && !exposed; x++) exposed = shouldDegradeAt(x, y);
-    if (exposed) degradeIntegrity(door);
+    if (exposed)
+      applyIntegrityChange(door, {
+        entityId: 'object:' + door.id,
+        materialFamily: door.materialFamily ?? 'aluminium',
+        source: 'environment',
+        context: integrityContext,
+      });
   }
 }
 function closeSectionDoors(s, section) {
@@ -401,9 +417,10 @@ function unlockSectionDoors(s, section) {
 }
 export function advanceEnvironment(s, { initial = false } = {}) {
   s.environmentState ??= {};
+  const integrityContext = createIntegrityContext();
   const before = detectSections(s, { useSnapshot: false });
   // Boundary aluminium loses airtightness against LOW pressure as well as vacuum.
-  if (!initial) degradeExposedAluminium(s, before);
+  if (!initial) degradeExposedAluminium(s, before, integrityContext);
   const data = detectSections(s, { useSnapshot: false }),
     nextState = {};
   for (const section of data.sections) {
@@ -434,7 +451,7 @@ export function advanceEnvironment(s, { initial = false } = {}) {
         base == null
           ? null
           : Math.max(-270, base - 29 * counts.vacuumTiles - 1.2 * counts.internalTiles);
-      degradeAluminiumInsideSection(s, data, section);
+      degradeAluminiumInsideSection(s, data, section, integrityContext);
     } else if (section.hasActivePanel) {
       section.atmosphere = 'OPTIMAL';
       section.pressure = 'OPTIMAL';
