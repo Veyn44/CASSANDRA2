@@ -1,6 +1,7 @@
 import { getBuildable } from '../systems/prefab-manager.js';
 import { applyDamageAt } from '../systems/damage-system.js';
-import { isBlocked } from '../systems/navigation.js';
+import { isBlocked, isDeckLocked } from '../systems/navigation.js';
+import { syncAccessShaftPressureLocks } from '../systems/access-shaft-system.js';
 import { bindCameraControls } from './camera-controls.js';
 import { createCommandExecutor } from './command-execution.js';
 import { createConstructionInput } from './construction-input.js';
@@ -37,9 +38,13 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
   const closeShaftMenu = () => { if (shaftMenu) shaftMenu.hidden = true; };
   function showShaftMenu(event) {
     if (!shaftMenu || !s.devMode || !s.accessShaft) return;
+    const deckLock = s.accessShaft.decks?.[s.activeDeck] ?? {};
+    const autoLocked = Boolean(deckLock.autoLock);
+    const locked = isDeckLocked(s, s.activeDeck);
     shaftMenu.innerHTML =
-      '<button type="button" data-shaft-action="lock">' +
-      (s.accessShaft.locked ? 'UNLOCK ACCESS' : 'LOCK ACCESS') + '</button>' +
+      '<button type="button" data-shaft-action="lock"' + (autoLocked ? ' disabled' : '') + '>' +
+      (autoLocked ? 'LOCKED · PRESSURE SAFETY' : locked ? 'UNLOCK ' + s.activeDeck : 'LOCK ' + s.activeDeck) + '</button>' +
+      (deckLock.lockReason ? '<div class="shaft-lock-reason">' + deckLock.lockReason + '</div>' : '') +
       '<button type="button" data-shaft-action="go">GO TO <span>›</span></button>' +
       '<div class="shaft-deck-options" hidden>' +
       ['Z+2','Z+1','Z0','Z-1','Z-2'].filter((deck) => deck !== s.activeDeck)
@@ -52,8 +57,14 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
   if (shaftMenu) listen(shaftMenu, 'click', (event) => {
     const action = event.target.closest('[data-shaft-action]')?.dataset.shaftAction;
     if (action === 'lock') {
-      if (s.accessShaft.autoLocked) note('ACCESS SHAFT LOCKED · PRESSURE SAFETY');
-      else {
+      const deck = s.activeDeck;
+      const access = s.accessShaft.decks?.[deck];
+      if (access?.autoLock) note('ACCESS SHAFT LOCKED · PRESSURE SAFETY');
+      else if (access) {
+        access.manualLock = !access.manualLock;
+        syncAccessShaftPressureLocks(s);
+        note(access.manualLock ? 'ACCESS LOCKED · ' + deck : 'ACCESS UNLOCKED · ' + deck);
+      } else {
         s.accessShaft.locked = !s.accessShaft.locked;
         note(s.accessShaft.locked ? 'ACCESS SHAFT LOCKED' : 'ACCESS SHAFT UNLOCKED');
       }
@@ -167,7 +178,7 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
         const tile = deck?.tiles[key(p.x, p.y)];
         const shaft = deck?.shaft.some((point) => point.x === p.x && point.y === p.y);
         inspector.innerHTML = '<strong>' + (tile ? 'SHIP HULL' : shaft ? 'CENTRAL SHAFT' : 'OUTSIDE DECK FOOTPRINT') + '</strong><br>' +
-          (tile ? 'Undamageable · Non-buildable · No integrity' : shaft ? '2 × 2 vertical access void' : 'Derived directly from Z0 footprint') +
+          (tile ? 'Undamageable · Non-buildable · No integrity' : shaft ? '2 × 2 vertical access void' : 'Derived directly from Z0 footprint') + '<br>ENVIRONMENT · ' + (deck?.environmentTag ?? 'N/A') +
           '<br>LEVEL ' + s.activeDeck + ' · POSITION ' + p.x + ', ' + p.y;
       } else {
         const t = s.map.tiles[key(p.x, p.y)],
