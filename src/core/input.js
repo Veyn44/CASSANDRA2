@@ -135,36 +135,24 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
       const p = tile(e.clientX, e.clientY);
       if (s.devMode && onShaft(p)) { showShaftMenu(e); return; }
       closeShaftMenu();
-      if (s.activeDeck !== 'Z0') {
-        note('TECHNICAL DECKS ARE READ-ONLY');
-        return;
-      }
-      if (s.activeTool) {
+      if (s.activeDeck === 'Z0' && s.activeTool) {
         cancel();
         note('BUILD MODE CANCELLED');
-      } else executeCommand(p, s.activeDeck);
+      } else {
+        executeCommand(p, s.activeDeck);
+      }
       return;
     }
     if (e.button === 0) {
       const p = tile(e.clientX, e.clientY);
       if (!inside(p)) return;
-      if (s.pawn.selected && s.activeDeck !== (s.pawn.deck ?? 'Z0')) {
-        executeCommand(p, s.activeDeck);
-        return;
-      }
-      if (s.activeDeck !== 'Z0') {
-        if (s.damageSimulator?.active) note('SHIP HULL IS UNDAMAGEABLE');
-        else if (s.activeTool) note('TECHNICAL DECKS ARE SEALED · CONSTRUCTION DISABLED');
-        else if (s.pawn.selected) executeCommand(p, s.activeDeck);
-        return;
-      }
-      if (s.damageSimulator?.active) {
+      if (s.activeDeck === 'Z0' && s.damageSimulator?.active) {
         const result = applyDamageAt(s, p.x, p.y);
         note(result.message);
         refresh();
         return;
       }
-      if (s.activeTool) {
+      if (s.activeDeck === 'Z0' && s.activeTool) {
         place(p);
         if (s.activeTool === 'hull' || s.activeTool === 'wall' || s.activeTool === 'erase') {
           painting = true;
@@ -173,13 +161,13 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
         }
         return;
       }
-      if (p.x === s.pawn.x && p.y === s.pawn.y) {
+      if ((s.pawn.deck ?? 'Z0') === s.activeDeck && p.x === s.pawn.x && p.y === s.pawn.y) {
         s.pawn.selected = true;
         s.selectedObject = null;
         refresh();
         return;
       }
-      const obj = objectAt(p);
+      const obj = s.activeDeck === 'Z0' ? objectAt(p) : null;
       if (obj) {
         s.selectedObject = obj.id;
         s.pawn.selected = false;
@@ -187,9 +175,17 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
         refresh();
         return;
       }
-      s.selectedObject = null;
-      s.pawn.selected = false;
-      refresh();
+      if (s.pawn.selected) {
+        facePawnToward(p);
+        return;
+      }
+      if (s.activeDeck === 'Z0') {
+        s.selectedObject = null;
+        s.pawn.selected = false;
+        refresh();
+      } else if (s.activeTool) {
+        note('TECHNICAL DECKS ARE SEALED · CONSTRUCTION DISABLED');
+      }
     }
   });
   listen(canvas, 'pointermove', (e) => {
