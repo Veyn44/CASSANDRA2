@@ -35,6 +35,33 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
   const executeCommand = createCommandExecutor(s, refresh, note, objectAt, controller.signal);
   const shaftMenu = document.querySelector('#shaft-menu');
   const onShaft = (p) => s.accessShaft?.cells?.some((cell) => cell.x === p.x && cell.y === p.y);
+  function shaftArrivalTile(deckId) {
+    const shaftCells = s.accessShaft?.cells ?? [];
+    const candidates = new Map();
+    for (const cell of shaftCells) {
+      for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
+        const x = cell.x + dx, y = cell.y + dy, k = key(x, y);
+        if (shaftCells.some((shaftCell) => shaftCell.x === x && shaftCell.y === y)) continue;
+        const walkable = deckId === 'Z0'
+          ? Boolean(s.map.tiles[k]?.hull) && !isBlocked(s, x, y)
+          : Boolean(s.technicalDecks?.[deckId]?.tiles?.[k]);
+        if (walkable) candidates.set(k, { x, y });
+      }
+    }
+    return [...candidates.values()].sort((a, b) =>
+      Math.abs(a.x - s.pawn.x) + Math.abs(a.y - s.pawn.y) -
+      (Math.abs(b.x - s.pawn.x) + Math.abs(b.y - s.pawn.y))
+    )[0] ?? { x: s.accessShaft.x + 1, y: s.accessShaft.y + 1 };
+  }
+  function facePawnToward(point) {
+    if (!s.pawn.selected || (s.pawn.deck ?? 'Z0') !== s.activeDeck) return;
+    const dx = point.x + 0.5 - (s.pawn.x + 0.5);
+    const dy = point.y + 0.5 - (s.pawn.y + 0.5);
+    if (dx || dy) {
+      s.pawn.facing = Math.atan2(dy, dx);
+      refresh();
+    }
+  }
   const closeShaftMenu = () => { if (shaftMenu) shaftMenu.hidden = true; };
   function showShaftMenu(event) {
     if (!shaftMenu || !s.devMode || !s.accessShaft) return;
@@ -46,9 +73,50 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
       '<button type="button" data-shaft-action="lock"' + (autoLocked ? ' disabled' : '') + '>' +
       (autoLocked ? 'LOCKED · PRESSURE SAFETY' : locked ? 'UNLOCK ' + s.activeDeck : 'LOCK ' + s.activeDeck) + '</button>' +
       (deckLock.lockReason ? '<div class="shaft-lock-reason">' + deckLock.lockReason + '</div>' : '') +
-      '<button type="button" data-shaft-action="go">GO TO <span>›</span></button>' +
-      '<div class="shaft-deck-options" hidden>' +
-      ['Z+2','Z+1','Z0','Z-1','Z-2'].filter((deck) => deck !== s.activeDeck)
+      (s.pawn.selected
+        ? '<button type="button" data-shaft-action="go">GO TO <span>›</span></button>' +
+          '<div class="shaft-deck-options" hidden>' +
+          ['Z+2','Z+1','Z0','Z-1','Z-2'].filter((deck) => deck !== (s.pawn.deck ?? 'Z0'))
+            .map((deck) => '<button type="button" data-shaft-deck="' + deck + '">' + deck + '</button>').join('') +
+          '</div>'
+        : '') +
+      '<div class="shaft-menu-footer">' + s.activeDeck + '</div>';
+    shaftMenu.style.left = Math.min(event.clientX, window.innerWidth - 190) + 'px';
+    shaftMenu.style.top = Math.min(event.clientY, window.innerHeight - 150) + 'px';
+    shaftMenu.hidden = false;
+  }
+  if (shaftMenu) listen(shaftMenu, 'click', (event) => {
+    const action = event.target.closest('[data-shaft-action]')?.dataset.shaftAction;
+    if (action === 'lock') {
+      const deck = s.activeDeck;
+      const access = s.accessShaft.decks?.[deck];
+      if (access?.autoLock) note('ACCESS SHAFT LOCKED · PRESSURE SAFETY');
+      else if (access) {
+        access.manualLock = !access.manualLock;
+        syncAccessShaftPressureLocks(s);
+        note(access.manualLock ? 'ACCESS LOCKED · ' + deck : 'ACCESS UNLOCKED · ' + deck);
+      } else {
+        s.accessShaft.locked = !s.accessShaft.locked;
+        note(s.accessShaft.locked ? 'ACCESS SHAFT LOCKED' : 'ACCESS SHAFT UNLOCKED');
+      }
+      closeShaftMenu(); refresh(); return;
+    }
+    if (action === 'go') {
+      if (!s.pawn.selected) return;
+      const list = shaftMenu.querySelector('.shaft-deck-options');
+      if (list) list.hidden = !list.hidden;
+      return;
+    }
+    const deck = event.target.closest('[data-shaft-deck]')?.dataset.shaftDeck;
+    if (deck && s.pawn.selected) {
+      const destination = shaftArrivalTile(deck);
+      s.activeTool = null;
+      s.selectedObject = null;
+      closeShaftMenu();
+      note('RESEARCHER ROUTING TO ' + deck);
+      executeCommand(destination, deck);
+    }
+  });
         .map((deck) => '<button type="button" data-shaft-deck="' + deck + '">' + deck + '</button>').join('') +
       '</div>';
     shaftMenu.style.left = Math.min(event.clientX, window.innerWidth - 190) + 'px';
