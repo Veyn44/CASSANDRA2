@@ -249,16 +249,19 @@ export function createRenderer(canvas, s) {
       c.fillStyle = '#142a35';
       c.strokeStyle = shaft.locked ? '#d4776e' : '#72c7d6';
       c.lineWidth = Math.max(2, z * 0.07);
-      c.fillRect(p.x + z * 0.04, p.y + z * 0.04, z * 1.92, z * 1.92);
-      c.strokeRect(p.x + z * 0.04, p.y + z * 0.04, z * 1.92, z * 1.92);
+      c.fillRect(p.x + z * 0.06, p.y + z * 0.06, z * 0.88, z * 0.88);
+      c.strokeRect(p.x + z * 0.06, p.y + z * 0.06, z * 0.88, z * 0.88);
+      // Ladder and sealed hatch are part of the shaft module; no built-in control-panel graphic.
+      c.strokeStyle = '#e1f3f7';
+      c.lineWidth = Math.max(1.5, z * 0.055);
       c.beginPath();
-      c.moveTo(p.x + z, p.y + z * 0.05); c.lineTo(p.x + z, p.y + z * 1.95);
-      c.moveTo(p.x + z * 0.05, p.y + z); c.lineTo(p.x + z * 1.95, p.y + z); c.stroke();
-      c.fillStyle = '#e1f3f7';
-      c.font = 'bold ' + Math.max(8, z * 0.3) + 'px sans-serif';
-      c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillText('L', p.x + z * 1.5, p.y + z * 1.5);
-      c.fillText(shaft.locked ? 'LOCK' : 'OPEN', p.x + z * 0.5, p.y + z * 0.5);
+      c.moveTo(p.x + z * 0.34, p.y + z * 0.18); c.lineTo(p.x + z * 0.34, p.y + z * 0.82);
+      c.moveTo(p.x + z * 0.66, p.y + z * 0.18); c.lineTo(p.x + z * 0.66, p.y + z * 0.82);
+      for (let rung = 0; rung < 4; rung++) {
+        const yy = p.y + z * (0.28 + rung * 0.15);
+        c.moveTo(p.x + z * 0.34, yy); c.lineTo(p.x + z * 0.66, yy);
+      }
+      c.stroke();
       c.restore();
     }
     if ((s.pawn.deck ?? 'Z0') === s.activeDeck) {
