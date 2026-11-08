@@ -244,7 +244,12 @@ export function createInitialState({ mode = 'normal' } = {}) {
     nextObjectId: 21,
     hoverTile: null,
     activeDeck: 'Z0',
-    technicalDecks,\n    accessShaft: {\n      x: shaftCells.length ? Math.min(...shaftCells.map((p) => p.x)) : 0,\n      y: shaftCells.length ? Math.min(...shaftCells.map((p) => p.y)) : 0,\n      w: 2, h: 2, cells: shaftCells.map((p) => ({ ...p })),\n      locked: false, autoLocked: false, lockReason: null,\n    },
+    technicalDecks,\n    accessShaft: {
+      x: shaftCells.length ? Math.min(...shaftCells.map((p) => p.x)) : 0,
+      y: shaftCells.length ? Math.min(...shaftCells.map((p) => p.y)) : 0,
+      w: 2, h: 2, cells: shaftCells.map((p) => ({ ...p })),
+      locked: false, autoLocked: false, lockReason: null,
+    },
     map: {
       width: 256,
       height: 128,
