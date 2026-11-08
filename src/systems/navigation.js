@@ -94,3 +94,35 @@ export function findWorkPath(s, x, y, w = 1, h = 1) {
   }
   return best;
 }
+
+
+const DECK_LEVELS = ['Z+2', 'Z+1', 'Z0', 'Z-1', 'Z-2'];
+const shaftCells = (s) => new Set((s.accessShaft?.cells ?? []).map(({ x, y }) => key(x, y)));
+function isBlockedOnDeck(s, deckId, x, y) {
+  const k = key(x, y);
+  if (deckId === 'Z0') return isBlocked(s, x, y);
+  const deck = s.technicalDecks?.[deckId];
+  if (!deck) return true;
+  if (shaftCells(s).has(k)) return false;
+  return !deck.tiles?.[k];
+}
+function reconstructDeckPath(came, endKey) {
+  const path = []; let cursor = endKey;
+  while (cursor !== null) { const [deck, x, y] = cursor.split('|'); path.push({ deck, x: Number(x), y: Number(y) }); cursor = came.get(cursor); }
+  return path.reverse();
+}
+export function findDeckPath(s, target, targetDeck = s.activeDeck) {
+  const startDeck = s.pawn.deck ?? 'Z0';
+  if (!DECK_LEVELS.includes(targetDeck) || (targetDeck !== 'Z0' && !s.technicalDecks?.[targetDeck])) return null;
+  if (s.accessShaft?.locked && startDeck !== targetDeck) return null;
+  const encode = (p) => p.deck + '|' + p.x + '|' + p.y;
+  const start = { deck: startDeck, x: s.pawn.x, y: s.pawn.y }, startKey = encode(start), q = [start], came = new Map([[startKey, null]]), shaft = shaftCells(s);
+  for (let i = 0; i < q.length; i++) {
+    const p = q[i], pk = encode(p);
+    if (p.deck === targetDeck && p.x === target.x && p.y === target.y) return reconstructDeckPath(came, pk);
+    const next = dirs.map(([dx, dy]) => ({ deck: p.deck, x: p.x + dx, y: p.y + dy }));
+    if (shaft.has(key(p.x, p.y)) && !s.accessShaft?.locked) { const n = DECK_LEVELS.indexOf(p.deck); if (n > 0) next.push({ deck: DECK_LEVELS[n - 1], x: p.x, y: p.y }); if (n >= 0 && n < DECK_LEVELS.length - 1) next.push({ deck: DECK_LEVELS[n + 1], x: p.x, y: p.y }); }
+    for (const point of next) { const nk = encode(point); if (came.has(nk) || point.x < 0 || point.y < 0 || point.x >= s.map.width || point.y >= s.map.height || isBlockedOnDeck(s, point.deck, point.x, point.y)) continue; came.set(nk, pk); q.push(point); }
+  }
+  return null;
+}
