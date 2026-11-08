@@ -99,7 +99,9 @@ export function findWorkPath(s, x, y, w = 1, h = 1) {
 const DECK_LEVELS = ['Z+2', 'Z+1', 'Z0', 'Z-1', 'Z-2'];
 export function isDeckLocked(s, deckId) {
   const access = s.accessShaft?.decks?.[deckId];
-  return access ? Boolean(access.manualLock || access.autoLock) : Boolean(s.accessShaft?.locked || s.accessShaft?.autoLocked);
+  return access
+    ? Boolean(access.manualLock || access.autoLock)
+    : Boolean(s.accessShaft?.locked || s.accessShaft?.autoLocked);
 }
 const shaftCells = (s) => new Set((s.accessShaft?.cells ?? []).map(({ x, y }) => key(x, y)));
 function isBlockedOnDeck(s, deckId, x, y) {
@@ -111,8 +113,13 @@ function isBlockedOnDeck(s, deckId, x, y) {
   return !deck.tiles?.[k];
 }
 function reconstructDeckPath(came, endKey) {
-  const path = []; let cursor = endKey;
-  while (cursor !== null) { const [deck, x, y] = cursor.split('|'); path.push({ deck, x: Number(x), y: Number(y) }); cursor = came.get(cursor); }
+  const path = [];
+  let cursor = endKey;
+  while (cursor !== null) {
+    const [deck, x, y] = cursor.split('|');
+    path.push({ deck, x: Number(x), y: Number(y) });
+    cursor = came.get(cursor);
+  }
   return path.reverse();
 }
 export function findDeckPath(s, target, targetDeck = s.activeDeck) {
@@ -120,7 +127,11 @@ export function findDeckPath(s, target, targetDeck = s.activeDeck) {
   const startDeck = s.pawn.deck ?? 'Z0';
   if (!DECK_LEVELS.includes(targetDeck) || (targetDeck !== 'Z0' && !s.technicalDecks?.[targetDeck])) return null;
   const encode = (p) => p.deck + '|' + p.x + '|' + p.y;
-  const start = { deck: startDeck, x: s.pawn.x, y: s.pawn.y }, startKey = encode(start), q = [start], came = new Map([[startKey, null]]), shaft = shaftCells(s);
+  const start = { deck: startDeck, x: s.pawn.x, y: s.pawn.y };
+  const startKey = encode(start);
+  const q = [start];
+  const came = new Map([[startKey, null]]);
+  const shaft = shaftCells(s);
   for (let i = 0; i < q.length; i++) {
     const p = q[i], pk = encode(p);
     if (p.deck === targetDeck && p.x === target.x && p.y === target.y) return reconstructDeckPath(came, pk);
@@ -131,7 +142,20 @@ export function findDeckPath(s, target, targetDeck = s.activeDeck) {
         if (adjacent && !isDeckLocked(s, p.deck) && !isDeckLocked(s, adjacent))
           next.push({ deck: adjacent, x: p.x, y: p.y });
     }
-    for (const point of next) { const nk = encode(point); if (came.has(nk) || point.x < 0 || point.y < 0 || point.x >= s.map.width || point.y >= s.map.height || isBlockedOnDeck(s, point.deck, point.x, point.y)) continue; came.set(nk, pk); q.push(point); }
+    for (const point of next) {
+      const nk = encode(point);
+      if (
+        came.has(nk) ||
+        point.x < 0 ||
+        point.y < 0 ||
+        point.x >= s.map.width ||
+        point.y >= s.map.height ||
+        isBlockedOnDeck(s, point.deck, point.x, point.y)
+      )
+        continue;
+      came.set(nk, pk);
+      q.push(point);
+    }
   }
   return null;
 }
