@@ -27,13 +27,12 @@ export function createTechnicalDecks(zeroLevelTiles) {
   const maxX = Math.max(...points.map(([x]) => x));
   const minY = Math.min(...points.map(([, y]) => y));
   const maxY = Math.max(...points.map(([, y]) => y));
+  // Keep the former 2x2 shaft's upper-left anchor as the single 1x1 access tile.
+  // This makes the location deterministic and preserves the ship's established center layout.
   const shaftX = Math.floor((minX + maxX - 1) / 2);
   const shaftY = Math.floor((minY + maxY - 1) / 2);
   const footprintSet = new Set(footprint);
-  const shaft = [];
-  for (let y = shaftY; y < shaftY + 2; y++)
-    for (let x = shaftX; x < shaftX + 2; x++)
-      if (footprintSet.has(key(x, y))) shaft.push({ x, y });
+  const shaft = footprintSet.has(key(shaftX, shaftY)) ? [{ x: shaftX, y: shaftY }] : [];
 
   return Object.fromEntries(
     TECHNICAL_DECK_LEVELS.map((level) => {
@@ -66,15 +65,15 @@ export function createTechnicalDecks(zeroLevelTiles) {
 }
 
 /**
- * Rebuild derived decks and keep their shared 2x2 shaft opening synchronized.
+ * Rebuild derived decks and keep their shared 1x1 shaft opening synchronized.
  * Existing manual and pressure locks are retained across Hull footprint edits.
  */
 export function syncTechnicalDecksState(state) {
   state.technicalDecks = createTechnicalDecks(state.map.tiles);
   const shaft = state.technicalDecks['Z+2']?.shaft ?? [];
   state.accessShaft.cells = shaft.map(({ x, y }) => ({ x, y }));
-  state.accessShaft.w = 2;
-  state.accessShaft.h = 2;
+  state.accessShaft.w = 1;
+  state.accessShaft.h = 1;
   if (shaft.length) {
     state.accessShaft.x = Math.min(...shaft.map(({ x }) => x));
     state.accessShaft.y = Math.min(...shaft.map(({ y }) => y));
