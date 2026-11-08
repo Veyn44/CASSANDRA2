@@ -217,7 +217,7 @@ export function createInitialState({ mode = 'normal' } = {}) {
     },
   };
   for (const object of Object.values(objects)) object.integrity = 100;
-  const state = {
+  const technicalDecks = createTechnicalDecks(tiles);\n  const shaftCells = technicalDecks['Z+2']?.shaft ?? [];\n  const state = {
     turn: 1,
     day: 1,
     gameConfig,
@@ -242,7 +242,7 @@ export function createInitialState({ mode = 'normal' } = {}) {
     nextObjectId: 21,
     hoverTile: null,
     activeDeck: 'Z0',
-    technicalDecks: createTechnicalDecks(tiles),
+    technicalDecks,\n    accessShaft: {\n      x: shaftCells.length ? Math.min(...shaftCells.map((p) => p.x)) : 0,\n      y: shaftCells.length ? Math.min(...shaftCells.map((p) => p.y)) : 0,\n      w: 2, h: 2, cells: shaftCells.map((p) => ({ ...p })),\n      locked: false, autoLocked: false, lockReason: null,\n    },
     map: {
       width: 256,
       height: 128,
