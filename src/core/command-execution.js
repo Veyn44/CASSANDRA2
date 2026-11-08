@@ -19,7 +19,6 @@ export function createCommandExecutor(s, refresh, note, objectAt, signal) {
         s.pawn.deck = point.deck; s.activeDeck = point.deck;
       }
       s.pawn.x = point.x; s.pawn.y = point.y;
-      s.camera.x = point.x; s.camera.y = point.y;
       refresh();
       setTimeout(step, 115);
     };
