@@ -1,4 +1,5 @@
 import { endTurn } from '../systems/turn-lifecycle.js';
+import { syncAccessShaftPressureLocks } from '../systems/access-shaft-system.js';
 
 export function bindGameplayControls({
   $,
@@ -53,6 +54,7 @@ export function bindGameplayControls({
   $('#next-turn').onclick = () => {
     const state = getState();
     const result = endTurn(state);
+    syncAccessShaftPressureLocks(state);
     noteText(result.message);
     refresh();
   };
