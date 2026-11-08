@@ -189,6 +189,19 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
         return;
       }
       if (s.pawn.selected) {
+        const positionKey = key(p.x, p.y);
+        const asteroidGround = s.map.asteroid?.groundLookup?.[positionKey];
+        const asteroidCell = s.map.asteroid?.cellLookup?.[positionKey];
+        const isVacuum =
+          !s.map.tiles[positionKey]?.hull &&
+          !asteroidGround?.walkable &&
+          !asteroidCell;
+        if (isVacuum) {
+          s.pawn.selected = false;
+          s.selectedObject = null;
+          refresh();
+          return;
+        }
         facePawnToward(p);
         return;
       }
