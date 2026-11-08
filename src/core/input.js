@@ -104,6 +104,10 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
     if (e.button === 0) {
       const p = tile(e.clientX, e.clientY);
       if (!inside(p)) return;
+      if (s.pawn.selected && s.activeDeck !== (s.pawn.deck ?? 'Z0')) {
+        executeCommand(p, s.activeDeck);
+        return;
+      }
       if (s.activeDeck !== 'Z0') {
         if (s.damageSimulator?.active) note('SHIP HULL IS UNDAMAGEABLE');
         else if (s.activeTool) note('TECHNICAL DECKS ARE SEALED · CONSTRUCTION DISABLED');
