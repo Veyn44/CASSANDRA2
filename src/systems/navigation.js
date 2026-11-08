@@ -112,6 +112,7 @@ function reconstructDeckPath(came, endKey) {
   return path.reverse();
 }
 export function findDeckPath(s, target, targetDeck = s.activeDeck) {
+  if (!s.devMode) return null;
   const startDeck = s.pawn.deck ?? 'Z0';
   if (!DECK_LEVELS.includes(targetDeck) || (targetDeck !== 'Z0' && !s.technicalDecks?.[targetDeck])) return null;
   if (s.accessShaft?.locked && startDeck !== targetDeck) return null;
