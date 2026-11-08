@@ -81,7 +81,7 @@ export function createConstructionInput(s, inside, objectAt, refresh, note) {
             note('HULL WALL REMOVED · DEV CREATOR');
           } else if (t?.hull) {
             delete s.map.tiles[k];
-            s.technicalDecks = createTechnicalDecks(s.map.tiles);
+            syncTechnicalDecksState(s);
             note('HULL TILE REMOVED · DEV CREATOR');
           } else note('NOTHING TO ERASE');
         }
