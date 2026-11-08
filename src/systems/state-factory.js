@@ -217,7 +217,9 @@ export function createInitialState({ mode = 'normal' } = {}) {
     },
   };
   for (const object of Object.values(objects)) object.integrity = 100;
-  const technicalDecks = createTechnicalDecks(tiles);\n  const shaftCells = technicalDecks['Z+2']?.shaft ?? [];\n  const state = {
+  const technicalDecks = createTechnicalDecks(tiles);
+  const shaftCells = technicalDecks['Z+2']?.shaft ?? [];
+  const state = {
     turn: 1,
     day: 1,
     gameConfig,
