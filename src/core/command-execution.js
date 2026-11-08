@@ -1,5 +1,6 @@
 import { completePlanAction, completeModuleAction } from '../systems/construction-system.js';
-import { findDeckPath, findWorkPath, isBlocked } from '../systems/navigation.js';
+import { findDeckPath, findWorkPath, isBlocked, isDeckLocked } from '../systems/navigation.js';
+import { syncAccessShaftPressureLocks } from '../systems/access-shaft-system.js';
 
 const key = (x, y) => x + ',' + y;
 
@@ -26,9 +27,10 @@ export function createCommandExecutor(s, refresh, note, objectAt, signal) {
   }
   function command(p, targetDeck = s.activeDeck) {
     if (!inside(p) || s.pawn.moving) return;
+    syncAccessShaftPressureLocks(s);
     if (!s.pawn.selected) { note('SELECT THE RESEARCHER FIRST'); return; }
     if (targetDeck !== (s.pawn.deck ?? 'Z0')) {
-      if (s.accessShaft?.locked) { note('ACCESS SHAFT LOCKED'); return; }
+      if (isDeckLocked(s, s.pawn.deck ?? 'Z0') || isDeckLocked(s, targetDeck)) { note('ACCESS SHAFT LOCKED'); return; }
       const path = findDeckPath(s, p, targetDeck);
       if (!path) { note('NO ACCESSIBLE ROUTE · CHECK SHAFT AND DESTINATION'); return; }
       note('RESEARCHER MOVING THROUGH ACCESS SHAFT');
