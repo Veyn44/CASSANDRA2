@@ -315,16 +315,21 @@ function degradeIntegrity(target) {
 function degradeAluminiumInsideSection(s, data, section) {
   const floorKeys = new Set(section.tiles.map((p) => key(p.x, p.y)));
   for (const object of Object.values(s.map.objects)) {
+    const aluminiumDoor = isAluminiumDoor(object);
     if (
       object.built === false ||
-      object.materialFamily !== 'aluminium' ||
-      DOOR_TYPES.has(object.type)
+      (!aluminiumDoor && object.materialFamily !== 'aluminium') ||
+      (DOOR_TYPES.has(object.type) && !aluminiumDoor)
     )
       continue;
     let inside = false;
     for (let y = object.y; y < object.y + object.h && !inside; y++)
       for (let x = object.x; x < object.x + object.w; x++) {
-        if (floorKeys.has(key(x, y))) {
+        if (
+          floorKeys.has(key(x, y)) ||
+          (aluminiumDoor &&
+            DIRS.some(([dx, dy]) => floorKeys.has(key(x + dx, y + dy))))
+        ) {
           inside = true;
           break;
         }
