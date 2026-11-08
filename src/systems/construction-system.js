@@ -1,9 +1,9 @@
 import { connectedHullSet } from './hull-system.js';
 import { getBuildable } from './prefab-manager.js';
-import { createTechnicalDecks } from './technical-deck-generator.js';
+import { syncTechnicalDecksState } from './technical-deck-generator.js';
 const key = (x, y) => x + ',' + y;
 function syncTechnicalDecks(s) {
-  s.technicalDecks = createTechnicalDecks(s.map.tiles);
+  syncTechnicalDecksState(s);
 }
 const dirs = [
   [1, 0],
