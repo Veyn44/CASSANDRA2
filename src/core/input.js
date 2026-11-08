@@ -32,6 +32,51 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
   }
   const place = createConstructionInput(s, inside, objectAt, refresh, note);
   const executeCommand = createCommandExecutor(s, refresh, note, objectAt, controller.signal);
+  const shaftMenu = document.querySelector('#shaft-menu');
+  const onShaft = (p) => s.accessShaft?.cells?.some((cell) => cell.x === p.x && cell.y === p.y);
+  const closeShaftMenu = () => { if (shaftMenu) shaftMenu.hidden = true; };
+  function showShaftMenu(event) {
+    if (!shaftMenu || !s.devMode || !s.accessShaft) return;
+    shaftMenu.innerHTML =
+      '<button type="button" data-shaft-action="lock">' +
+      (s.accessShaft.locked ? 'UNLOCK ACCESS' : 'LOCK ACCESS') + '</button>' +
+      '<button type="button" data-shaft-action="go">GO TO <span>›</span></button>' +
+      '<div class="shaft-deck-options" hidden>' +
+      ['Z+2','Z+1','Z0','Z-1','Z-2'].filter((deck) => deck !== s.activeDeck)
+        .map((deck) => '<button type="button" data-shaft-deck="' + deck + '">' + deck + '</button>').join('') +
+      '</div>';
+    shaftMenu.style.left = Math.min(event.clientX, window.innerWidth - 190) + 'px';
+    shaftMenu.style.top = Math.min(event.clientY, window.innerHeight - 150) + 'px';
+    shaftMenu.hidden = false;
+  }
+  if (shaftMenu) listen(shaftMenu, 'click', (event) => {
+    const action = event.target.closest('[data-shaft-action]')?.dataset.shaftAction;
+    if (action === 'lock') {
+      if (s.accessShaft.autoLocked) note('ACCESS SHAFT LOCKED · PRESSURE SAFETY');
+      else {
+        s.accessShaft.locked = !s.accessShaft.locked;
+        note(s.accessShaft.locked ? 'ACCESS SHAFT LOCKED' : 'ACCESS SHAFT UNLOCKED');
+      }
+      closeShaftMenu(); refresh(); return;
+    }
+    if (action === 'go') {
+      const list = shaftMenu.querySelector('.shaft-deck-options');
+      if (list) list.hidden = !list.hidden;
+      return;
+    }
+    const deck = event.target.closest('[data-shaft-deck]')?.dataset.shaftDeck;
+    if (deck) {
+      s.activeDeck = deck;
+      s.camera.x = s.accessShaft.x + 1;
+      s.camera.y = s.accessShaft.y + 1;
+      s.activeTool = null; s.selectedObject = null;
+      closeShaftMenu(); refresh(); note('DECK VIEW · ' + deck);
+    }
+  });
+  listen(document, 'pointerdown', (event) => {
+    if (shaftMenu && !shaftMenu.hidden && !shaftMenu.contains(event.target)) closeShaftMenu();
+  });
+
   listen(canvas, 'pointerdown', (e) => {
     if (s.paused) return;
     if (e.button === 1) {
@@ -43,6 +88,9 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
     }
     if (e.button === 2) {
       e.preventDefault();
+      const p = tile(e.clientX, e.clientY);
+      if (onShaft(p)) { showShaftMenu(e); return; }
+      closeShaftMenu();
       if (s.activeDeck !== 'Z0') {
         note('TECHNICAL DECKS ARE READ-ONLY');
         return;
@@ -50,7 +98,7 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
       if (s.activeTool) {
         cancel();
         note('BUILD MODE CANCELLED');
-      } else executeCommand(tile(e.clientX, e.clientY));
+      } else executeCommand(p, s.activeDeck);
       return;
     }
     if (e.button === 0) {
@@ -59,6 +107,7 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
       if (s.activeDeck !== 'Z0') {
         if (s.damageSimulator?.active) note('SHIP HULL IS UNDAMAGEABLE');
         else if (s.activeTool) note('TECHNICAL DECKS ARE SEALED · CONSTRUCTION DISABLED');
+        else if (s.pawn.selected) executeCommand(p, s.activeDeck);
         return;
       }
       if (s.damageSimulator?.active) {
