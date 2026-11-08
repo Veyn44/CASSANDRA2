@@ -50,14 +50,17 @@ export function createTechnicalDecks(zeroLevelTiles) {
           undamageable: true,
         };
       }
-      return [level, {
+      return [
         level,
-        source: 'Z0',
-        environmentTag: DECK_ENVIRONMENT_TAGS[level],
-        footprint: [...footprint],
-        shaft: shaft.map((point) => ({ ...point })),
-        tiles,
-      }];
+        {
+          level,
+          source: 'Z0',
+          environmentTag: DECK_ENVIRONMENT_TAGS[level],
+          footprint: [...footprint],
+          shaft: shaft.map((point) => ({ ...point })),
+          tiles,
+        },
+      ];
     })
   );
 }
