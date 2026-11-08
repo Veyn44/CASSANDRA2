@@ -93,8 +93,7 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
           ['Z+2','Z+1','Z0','Z-1','Z-2'].filter((deck) => deck !== (s.pawn.deck ?? 'Z0'))
             .map((deck) => '<button type="button" data-shaft-deck="' + deck + '">' + deck + '</button>').join('') +
           '</div>'
-        : '') +
-      '';
+        : '');
     shaftMenu.style.left = Math.min(event.clientX, window.innerWidth - 190) + 'px';
     shaftMenu.style.top = Math.min(event.clientY, window.innerHeight - 150) + 'px';
     shaftMenu.hidden = false;
