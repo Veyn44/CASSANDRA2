@@ -243,7 +243,7 @@ export function createRenderer(canvas, s) {
         c.restore();
       }
     }
-    if (s.accessShaft?.cells?.length) {
+    if (s.devMode && s.accessShaft?.cells?.length) {
       const shaft = s.accessShaft, p = pos(shaft.x, shaft.y);
       c.save();
       c.fillStyle = '#142a35';
