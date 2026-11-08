@@ -7,7 +7,36 @@ function sectionSignature(section) {
     .join('|');
 }
 
-function environmentDiagnostics(sections, previousState, nextState) {
+const BOUNDARY_DIRS = [
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+];
+
+function inspectBoundaryWalls(state, section) {
+  const walls = new Map();
+  for (const point of section.tiles) {
+    for (const [dx, dy] of BOUNDARY_DIRS) {
+      const x = point.x + dx,
+        y = point.y + dy,
+        tile = state.map.tiles[x + ',' + y];
+      if (!tile?.wall && !tile?.aluminiumWall) continue;
+      const integrity = tile.aluminiumWall
+        ? (tile.aluminiumWallIntegrity ?? 100)
+        : (tile.wallIntegrity ?? 100);
+      walls.set(x + ',' + y, {
+        x,
+        y,
+        kind: tile.aluminiumWall ? 'ALUMINIUM WALL' : 'TITANIUM WALL',
+        integrity,
+      });
+    }
+  }
+  return [...walls.values()];
+}
+
+function environmentDiagnostics(state, sections, previousState, nextState) {
   return sections.map((section) => {
     const signature = sectionSignature(section),
       previous = previousState[signature] ?? {},
@@ -18,6 +47,8 @@ function environmentDiagnostics(sections, previousState, nextState) {
         state.pressure ?? 'UNSET',
         state.temperature == null ? 'N/A' : state.temperature + ' C',
       ].join(' / ');
+    const boundaryWalls = inspectBoundaryWalls(state, section),
+      damagedBoundaryWalls = boundaryWalls.filter((wall) => wall.integrity < 100);
     const cautious = section.cautiousWalls.map(
       (wall) => wall.kind + ' ' + wall.x + ',' + wall.y + ' ' + wall.integrity + '%'
     );
@@ -29,6 +60,11 @@ function environmentDiagnostics(sections, previousState, nextState) {
       tiles: section.tileCount,
       panelActive: Boolean(section.hasActivePanel),
       openBoundaries: section.openBoundaries.length,
+      boundaryWallCount: boundaryWalls.length,
+      damagedBoundaryWalls: damagedBoundaryWalls.length,
+      damagedBoundaryWallDetails: damagedBoundaryWalls
+        .map((wall) => wall.kind + ' ' + wall.x + ',' + wall.y + ' ' + wall.integrity + '%')
+        .join('; ') || '-',
       cautiousWalls: cautious.length,
       cautiousWallDetails: cautious.join('; ') || '-',
       criticalWalls: critical.length,
@@ -46,6 +82,7 @@ export function endTurn(s) {
   const previousEnvironmentState = { ...(s.environmentState ?? {}) };
   const environment = advanceEnvironment(s);
   const diagnostics = environmentDiagnostics(
+    s,
     environment.sections,
     previousEnvironmentState,
     s.environmentState ?? {}
@@ -57,7 +94,7 @@ export function endTurn(s) {
   }
   s.pawn.op = s.pawn.maxOP;
   const report = diagnostics
-    .filter((item) => item.cautiousWalls > 0 || item.criticalWalls > 0 || item.openBoundaries > 0)
+    .filter((item) => item.damagedBoundaryWalls > 0 || item.cautiousWalls > 0 || item.criticalWalls > 0 || item.openBoundaries > 0)
     .map(
       (item) =>
         item.section +
@@ -65,7 +102,9 @@ export function endTurn(s) {
         item.detected +
         ' · PANEL ' +
         (item.panelActive ? 'ACTIVE' : 'INACTIVE') +
-        ' · CAUTIOUS [' +
+        ' · BOUNDARY WALLS [' +
+        item.damagedBoundaryWallDetails +
+        '] · CAUTIOUS [' +
         item.cautiousWallDetails +
         '] · CRITICAL [' +
         item.criticalWallDetails +
