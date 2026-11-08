@@ -73,7 +73,7 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
       closeShaftMenu(); refresh(); note('DECK VIEW · ' + deck);
     }
   });
-  listen(document, 'pointerdown', (event) => {
+  listen(document, 'click', (event) => {
     if (shaftMenu && !shaftMenu.hidden && !shaftMenu.contains(event.target)) closeShaftMenu();
   });
 
