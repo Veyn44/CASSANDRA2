@@ -1,6 +1,7 @@
 import { createGameConfig } from '../core/game-config.js';
 import { advanceEnvironment } from './section-manager.js';
-import { createTechnicalDecks } from './technical-deck-generator.js';
+import { createTechnicalDecks, DECK_ENVIRONMENT_TAGS, DECK_LEVELS } from './technical-deck-generator.js';
+import { syncAccessShaftPressureLocks } from './access-shaft-system.js';
 const key = (x, y) => x + ',' + y;
 export function createInitialState({ mode = 'normal' } = {}) {
   const tiles = {};
@@ -245,7 +246,9 @@ export function createInitialState({ mode = 'normal' } = {}) {
     hoverTile: null,
     activeDeck: 'Z0',
     technicalDecks,
+    deckEnvironmentTags: { ...DECK_ENVIRONMENT_TAGS },
     accessShaft: {
+      decks: Object.fromEntries(DECK_LEVELS.map((level) => [level, { manualLock: false, autoLock: false, lockReason: null }])),
       x: shaftCells.length ? Math.min(...shaftCells.map((p) => p.x)) : 0,
       y: shaftCells.length ? Math.min(...shaftCells.map((p) => p.y)) : 0,
       w: 2, h: 2, cells: shaftCells.map((p) => ({ ...p })),
@@ -282,5 +285,6 @@ export function createInitialState({ mode = 'normal' } = {}) {
     selection: 'researcher-01',
   };
   advanceEnvironment(state, { initial: true });
+  syncAccessShaftPressureLocks(state);
   return state;
 }
