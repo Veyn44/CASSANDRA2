@@ -38,6 +38,7 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
   const closeShaftMenu = () => { if (shaftMenu) shaftMenu.hidden = true; };
   function showShaftMenu(event) {
     if (!shaftMenu || !s.devMode || !s.accessShaft) return;
+    syncAccessShaftPressureLocks(s);
     const deckLock = s.accessShaft.decks?.[s.activeDeck] ?? {};
     const autoLocked = Boolean(deckLock.autoLock);
     const locked = isDeckLocked(s, s.activeDeck);
@@ -245,7 +246,7 @@ export function bindInput(canvas, s, r, refresh, cancel, note, onControlPanelCli
             s.pawn.level;
         }
         inspector.innerHTML =
-          '<strong>' + label + '</strong><br>' + attrs + '<br>POSITION ' + p.x + ', ' + p.y;
+          '<strong>' + label + '</strong><br>' + attrs + '<br>ENVIRONMENT · ' + (s.deckEnvironmentTags?.Z0 ?? 'N/A') + '<br>POSITION ' + p.x + ', ' + p.y;
       }
     }
     if (pan && last) {
