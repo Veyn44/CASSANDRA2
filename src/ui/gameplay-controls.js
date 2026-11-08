@@ -51,11 +51,34 @@ export function bindGameplayControls({
     state.map.gridVisible = !state.map.gridVisible;
     refresh();
   };
-  $('#next-turn').onclick = () => {
-    const state = getState();
-    const result = endTurn(state);
-    syncAccessShaftPressureLocks(state);
-    noteText(result.message);
-    refresh();
-  };
+  const nextTurnButton = $('#next-turn');
+  nextTurnButton.addEventListener(
+    'click',
+    () => {
+      const state = getState();
+      console.info('[CASSANDRA] NEXT TURN CLICKED', {
+        turnBefore: state?.turn,
+        dayBefore: state?.day,
+      });
+      try {
+        const result = endTurn(state);
+        syncAccessShaftPressureLocks(state);
+        noteText(result.message);
+        console.info('[CASSANDRA] NEXT TURN COMPLETED', {
+          turnAfter: state.turn,
+          dayAfter: state.day,
+        });
+      } catch (error) {
+        console.error('[CASSANDRA] NEXT TURN FAILED', error);
+        noteText(
+          'TURN FAILED · ' +
+            (error instanceof Error ? error.message : String(error)) +
+            ' · CHECK BROWSER CONSOLE'
+        );
+      } finally {
+        refresh();
+      }
+    },
+    true
+  );
 }
