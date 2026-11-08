@@ -48,8 +48,8 @@ function inspectBoundaryWalls(state, section, vacuumSet, tileToSection) {
   return [...walls.values()];
 }
 
-function environmentDiagnostics(state, sections, previousState, nextState) {
-  return sections.map((section) => {
+function environmentDiagnostics(state, environment, previousState, nextState) {
+  return environment.sections.map((section) => {
     const signature = sectionSignature(section),
       previous = previousState[signature] ?? {},
       saved = nextState[signature] ?? {};
@@ -75,7 +75,14 @@ function environmentDiagnostics(state, sections, previousState, nextState) {
       boundaryWallCount: boundaryWalls.length,
       damagedBoundaryWalls: damagedBoundaryWalls.length,
       damagedBoundaryWallDetails: damagedBoundaryWalls
-        .map((wall) => wall.kind + ' ' + wall.x + ',' + wall.y + ' ' + wall.integrity + '%')
+        .map(
+          (wall) =>
+            wall.kind +
+            ' ' + wall.x + ',' + wall.y +
+            ' ' + wall.integrity + '%' +
+            (wall.vacuumCells.length ? ' VACUUM@' + wall.vacuumCells.join('/') : ' NO VACUUM CONTACT') +
+            (wall.adjacentSections.length ? ' ADJACENT=' + wall.adjacentSections.join('/') : '')
+        )
         .join('; ') || '-',
       cautiousWalls: cautious.length,
       cautiousWallDetails: cautious.join('; ') || '-',
