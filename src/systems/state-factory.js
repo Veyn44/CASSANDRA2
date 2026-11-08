@@ -285,6 +285,7 @@ export function createInitialState({ mode = 'normal' } = {}) {
       name: 'Researcher',
       color: '#d76b73',
       deck: 'Z0',
+      facing: 0,
       x: 70,
       y: 64,
       level: 1,
