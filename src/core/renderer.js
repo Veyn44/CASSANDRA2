@@ -270,6 +270,23 @@ export function createRenderer(canvas, s) {
       c.strokeStyle = '#f2c2c5';
       c.lineWidth = 1.5;
       c.strokeRect(pawn.x + m, pawn.y + m, z - 2 * m, z - 2 * m);
+      const facing = s.pawn.facing ?? 0;
+      const centerX = pawn.x + z / 2;
+      const centerY = pawn.y + z / 2;
+      const directionX = Math.cos(facing);
+      const directionY = Math.sin(facing);
+      c.save();
+      c.strokeStyle = '#f6f1d5';
+      c.fillStyle = '#f6f1d5';
+      c.lineWidth = Math.max(1.5, z * 0.07);
+      c.beginPath();
+      c.moveTo(centerX, centerY);
+      c.lineTo(centerX + directionX * z * 0.39, centerY + directionY * z * 0.39);
+      c.stroke();
+      c.beginPath();
+      c.arc(centerX + directionX * z * 0.39, centerY + directionY * z * 0.39, Math.max(2, z * 0.07), 0, Math.PI * 2);
+      c.fill();
+      c.restore();
       if (s.pawn.selected) {
         c.strokeStyle = '#70f0a0';
         c.lineWidth = Math.max(3, z * 0.09);
