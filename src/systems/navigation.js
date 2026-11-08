@@ -97,6 +97,10 @@ export function findWorkPath(s, x, y, w = 1, h = 1) {
 
 
 const DECK_LEVELS = ['Z+2', 'Z+1', 'Z0', 'Z-1', 'Z-2'];
+export function isDeckLocked(s, deckId) {
+  const access = s.accessShaft?.decks?.[deckId];
+  return access ? Boolean(access.manualLock || access.autoLock) : Boolean(s.accessShaft?.locked || s.accessShaft?.autoLocked);
+}
 const shaftCells = (s) => new Set((s.accessShaft?.cells ?? []).map(({ x, y }) => key(x, y)));
 function isBlockedOnDeck(s, deckId, x, y) {
   const k = key(x, y);
@@ -115,14 +119,18 @@ export function findDeckPath(s, target, targetDeck = s.activeDeck) {
   if (!s.devMode) return null;
   const startDeck = s.pawn.deck ?? 'Z0';
   if (!DECK_LEVELS.includes(targetDeck) || (targetDeck !== 'Z0' && !s.technicalDecks?.[targetDeck])) return null;
-  if (s.accessShaft?.locked && startDeck !== targetDeck) return null;
   const encode = (p) => p.deck + '|' + p.x + '|' + p.y;
   const start = { deck: startDeck, x: s.pawn.x, y: s.pawn.y }, startKey = encode(start), q = [start], came = new Map([[startKey, null]]), shaft = shaftCells(s);
   for (let i = 0; i < q.length; i++) {
     const p = q[i], pk = encode(p);
     if (p.deck === targetDeck && p.x === target.x && p.y === target.y) return reconstructDeckPath(came, pk);
     const next = dirs.map(([dx, dy]) => ({ deck: p.deck, x: p.x + dx, y: p.y + dy }));
-    if (shaft.has(key(p.x, p.y)) && !s.accessShaft?.locked) { const n = DECK_LEVELS.indexOf(p.deck); if (n > 0) next.push({ deck: DECK_LEVELS[n - 1], x: p.x, y: p.y }); if (n >= 0 && n < DECK_LEVELS.length - 1) next.push({ deck: DECK_LEVELS[n + 1], x: p.x, y: p.y }); }
+    if (shaft.has(key(p.x, p.y))) {
+      const n = DECK_LEVELS.indexOf(p.deck);
+      for (const adjacent of [DECK_LEVELS[n - 1], DECK_LEVELS[n + 1]])
+        if (adjacent && !isDeckLocked(s, p.deck) && !isDeckLocked(s, adjacent))
+          next.push({ deck: adjacent, x: p.x, y: p.y });
+    }
     for (const point of next) { const nk = encode(point); if (came.has(nk) || point.x < 0 || point.y < 0 || point.x >= s.map.width || point.y >= s.map.height || isBlockedOnDeck(s, point.deck, point.x, point.y)) continue; came.set(nk, pk); q.push(point); }
   }
   return null;
